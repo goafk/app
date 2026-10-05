@@ -58,7 +58,7 @@ export function NewThreadSheet({ cwd, onClose, onCreated }: { cwd: string | null
       {(agents ?? []).map((a) => (
         <Pressable key={a.agentId} onPress={() => setAgentId(a.agentId)} style={({ pressed }) => [s.row, pressed && { backgroundColor: t.hover }]}>
           <AgentIcon kind={kindOf(a.agentId)} color={t.muted} size={18} />
-          <Text style={[s.rowText, agentId === a.agentId && { color: t.accent }]}>{a.zedName}</Text>
+          <Text style={[s.rowText, agentId === a.agentId && { color: t.accent }]}>{a.name || a.zedName}</Text>
           {agentId === a.agentId ? <CheckIcon color={t.accent} size={16} /> : null}
         </Pressable>
       ))}
