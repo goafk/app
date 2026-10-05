@@ -162,6 +162,17 @@ export function ThreadView({ id, find, onBack, onNewThread, onToggleWide, onRevi
     if (findHits.length) listRef.current?.scrollToIndex({ index: findHits[0], viewPosition: 0.5, animated: true });
   }, [findHits]);
   const plan = useMemo(() => [...(thread?.entries ?? [])].reverse().find((e) => e.kind === "plan")?.data ?? [], [thread]);
+  // A phone-only thread: open it as a new thread in Zed, with its whole conversation.
+  const moveIntoZed = async () => {
+    setToast("Moving it into Zed…");
+    try {
+      await api.adopt(id);
+      setToast("It's in Zed now, with the whole conversation");
+      load();
+    } catch (e: any) {
+      setToast(e.message);
+    }
+  };
   const toggleAutoApprove = async () => {
     if (!thread) return;
     const next = !thread.autoApprove;
@@ -436,6 +447,7 @@ export function ThreadView({ id, find, onBack, onNewThread, onToggleWide, onRevi
       <Sheet visible={menu} onClose={() => setMenu(false)}>
         {[
           { label: "Find in thread", run: () => setFindOpen(true) },
+          ...(thread?.phoneOnly && live ? [{ label: "Move into Zed now", run: moveIntoZed }] : []),
           ...(onReviewChanges ? [{ label: "Review changes", run: () => onReviewChanges(thread!.cwd) }] : []),
           ...(live ? [{ label: thread?.autoApprove ? "Approve everything: on — turn off" : "Approve everything in this thread", run: toggleAutoApprove }] : []),
           { label: "Refresh", run: load },

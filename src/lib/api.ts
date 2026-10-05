@@ -151,6 +151,7 @@ export function makeApi(conn: Conn) {
     /** While the Mac is locked: start now without Zed ("phone"), or queue it for when it unlocks. */
     newThreadLocked: (cwd: string, agentId: string, mode: "phone" | "when_unlocked", prompt?: string) =>
       call<SidebarThread & { queued?: PendingThread }>("POST", "/threads", { cwd, agentId, prompt, mode }),
+    adopt: (id: string) => call("POST", `/threads/${encodeURIComponent(id)}/adopt`),
     cancelPending: (id: string) => call("POST", `/threads/pending/${encodeURIComponent(id)}/cancel`),
   };
 }
