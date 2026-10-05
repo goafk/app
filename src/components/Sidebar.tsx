@@ -100,6 +100,8 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
       const waiting = collapsed && live.some((x) => x.status === "needs_permission");
       const working = collapsed && !waiting && live.some((x) => x.status === "running");
       const unread = collapsed && !waiting && !working && live.some((x) => x.unread);
+      const nWaiting = live.filter((x) => x.status === "needs_permission").length;
+      const nRunning = live.filter((x) => x.status === "running").length;
       const actions = (
         <>
           {onReviewChanges ? (
@@ -119,9 +121,29 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
           style={({ pressed }) => [phone ? s.projectCard : [s.project, afterThread && s.projectTop], pressed && { backgroundColor: t.hover }]}
         >
           <Text style={[s.projectName, phone && s.projectNameCard]} numberOfLines={1}>{item.project.name}</Text>
-          {waiting ? <WarningIcon color={t.warning} size={15} /> : null}
-          {working ? <ActivityIndicator size="small" color={t.muted} style={{ transform: [{ scale: 0.75 }] }} /> : null}
-          {unread ? <View style={[s.projectDot, { backgroundColor: t.accent }]} /> : null}
+          {phone && collapsed ? (
+            <>
+              {nWaiting ? (
+                <View style={[s.pill, { backgroundColor: t.warning + "1F" }]} accessibilityLabel={`${nWaiting} need you`}>
+                  <WarningIcon color={t.warning} size={12} />
+                  <Text style={[s.pillText, { color: t.warning }]}>{nWaiting && nRunning ? nWaiting : `${nWaiting} need${nWaiting === 1 ? "s" : ""} you`}</Text>
+                </View>
+              ) : null}
+              {nRunning ? (
+                <View style={[s.pill, { backgroundColor: t.optionBg }]} accessibilityLabel={`${nRunning} running`}>
+                  <ActivityIndicator size="small" color={t.muted} style={{ transform: [{ scale: 0.55 }], marginVertical: -8, marginHorizontal: -4 }} />
+                  <Text style={[s.pillText, { color: t.text }]}>{nWaiting && nRunning ? nRunning : `${nRunning} running`}</Text>
+                </View>
+              ) : null}
+              {unread && !nWaiting && !nRunning ? <View style={[s.projectDot, { backgroundColor: t.accent }]} /> : null}
+            </>
+          ) : (
+            <>
+              {waiting ? <WarningIcon color={t.warning} size={15} /> : null}
+              {working ? <ActivityIndicator size="small" color={t.muted} style={{ transform: [{ scale: 0.75 }] }} /> : null}
+              {unread ? <View style={[s.projectDot, { backgroundColor: t.accent }]} /> : null}
+            </>
+          )}
           {phone ? (
             <>
               {collapsed ? <Text style={s.projectCount}>{live.length || ""}</Text> : actions}
@@ -360,6 +382,8 @@ function styles(t: Theme) {
     renameBtnText: { color: t.onAccent, fontSize: t.fs(15.5), fontFamily: ui, fontWeight: "600" },
     liveDot: { width: 7, height: 7, borderRadius: 6 },
     card: { marginHorizontal: 12, marginTop: 10, backgroundColor: t.surface, borderWidth: 1, borderColor: t.border, borderRadius: 18, overflow: "hidden" },
+    pill: { flexDirection: "row", alignItems: "center", gap: 5, height: 24, paddingHorizontal: 9, borderRadius: 12 },
+    pillText: { fontSize: t.fs(12.5), fontFamily: ui, fontWeight: "600" },
     cardSmall: { marginTop: 8, borderRadius: 14 },
     divider: { height: StyleSheet.hairlineWidth, backgroundColor: t.border, marginLeft: 50 },
     projectCard: { flexDirection: "row", alignItems: "center", gap: 6, paddingLeft: 16, paddingRight: 14, minHeight: 54, backgroundColor: t.surface },
