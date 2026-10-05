@@ -61,6 +61,13 @@ Get notified when it lands in the stores at [goafk.dev](https://goafk.dev/#notif
 
 ## Set it up
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/readme/setup-dark.svg">
+    <img alt="Set up afk in three steps: run the installer on your computer, it shows a QR code, scan it with the afk app on your phone." src="assets/readme/setup-light.svg" width="760">
+  </picture>
+</p>
+
 1. **Install the hub on your computer:**
    ```sh
    curl -fsSL https://goafk.dev/install.sh | sh

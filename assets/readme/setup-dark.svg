@@ -1,0 +1,169 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="300" viewBox="0 0 900 300" role="img" aria-label="Set up afk in three steps: run the installer on your computer, it shows a QR code, scan it with the afk app on your phone."><title>Set up afk in three steps</title>
+<rect x="30" y="20" width="260" height="260" rx="18" fill="#15171A" stroke="#2A2D31"/>
+<circle cx="60" cy="50" r="12" fill="none" stroke="#444950"/>
+<text x="60" y="54.5" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="500" fill="#FFFFFF">1</text>
+<text x="82" y="49" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#FFFFFF">Install the hub</text>
+<text x="82" y="67" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#A8ABB0">on your computer</text>
+<rect x="320" y="20" width="260" height="260" rx="18" fill="#15171A" stroke="#2A2D31"/>
+<circle cx="350" cy="50" r="12" fill="none" stroke="#444950"/>
+<text x="350" y="54.5" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="500" fill="#FFFFFF">2</text>
+<text x="372" y="49" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#FFFFFF">It shows a QR code</text>
+<text x="372" y="67" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#A8ABB0">valid 15 minutes, one phone</text>
+<rect x="610" y="20" width="260" height="260" rx="18" fill="#15171A" stroke="#2A2D31"/>
+<circle cx="640" cy="50" r="12" fill="none" stroke="#444950"/>
+<text x="640" y="54.5" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="500" fill="#FFFFFF">3</text>
+<text x="662" y="49" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#FFFFFF">Scan it with the app</text>
+<text x="662" y="67" text-anchor="start" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#A8ABB0">and you're connected</text>
+<rect x="50" y="96" width="220" height="150" rx="12" fill="#0B0C0D"/>
+<circle cx="66" cy="112" r="4" fill="#444950"/>
+<circle cx="80" cy="112" r="4" fill="#444950"/>
+<circle cx="94" cy="112" r="4" fill="#444950"/>
+<text x="64" y="142" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" font-weight="400" fill="#E6E7E5">$ curl goafk.dev/install.sh | sh</text>
+<text x="64" y="166" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" font-weight="400" fill="#A8ABB0">✓ Zed found</text>
+<text x="64" y="185" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" font-weight="400" fill="#A8ABB0">✓ Agents synced</text>
+<text x="64" y="204" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" font-weight="400" fill="#A8ABB0">✓ Hub running</text>
+<text x="64" y="223" text-anchor="start" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" font-weight="400" fill="#A8ABB0">Scan the QR code ↓</text>
+<rect x="380" y="94" width="140" height="140" rx="10" fill="#FFFFFF"/>
+<rect x="390.00" y="104.00" width="40.00" height="40.00" fill="#111315"/>
+<rect x="395.71" y="109.71" width="28.57" height="28.57" fill="#FFFFFF"/>
+<rect x="401.43" y="115.43" width="17.14" height="17.14" fill="#111315"/>
+<rect x="470.00" y="104.00" width="40.00" height="40.00" fill="#111315"/>
+<rect x="475.71" y="109.71" width="28.57" height="28.57" fill="#FFFFFF"/>
+<rect x="481.43" y="115.43" width="17.14" height="17.14" fill="#111315"/>
+<rect x="390.00" y="184.00" width="40.00" height="40.00" fill="#111315"/>
+<rect x="395.71" y="189.71" width="28.57" height="28.57" fill="#FFFFFF"/>
+<rect x="401.43" y="195.43" width="17.14" height="17.14" fill="#111315"/>
+<rect x="435.71" y="104.00" width="5.76" height="5.76" fill="#111315"/>
+<rect x="452.86" y="104.00" width="5.76" height="5.76" fill="#111315"/>
+<rect x="458.57" y="104.00" width="5.76" height="5.76" fill="#111315"/>
+<rect x="458.57" y="109.71" width="5.76" height="5.76" fill="#111315"/>
+<rect x="435.71" y="115.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="441.43" y="115.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="452.86" y="115.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="435.71" y="121.14" width="5.76" height="5.76" fill="#111315"/>
+<rect x="441.43" y="121.14" width="5.76" height="5.76" fill="#111315"/>
+<rect x="447.14" y="121.14" width="5.76" height="5.76" fill="#111315"/>
+<rect x="447.14" y="126.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="452.86" y="126.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="458.57" y="126.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="435.71" y="132.57" width="5.76" height="5.76" fill="#111315"/>
+<rect x="447.14" y="132.57" width="5.76" height="5.76" fill="#111315"/>
+<rect x="452.86" y="132.57" width="5.76" height="5.76" fill="#111315"/>
+<rect x="435.71" y="138.29" width="5.76" height="5.76" fill="#111315"/>
+<rect x="447.14" y="138.29" width="5.76" height="5.76" fill="#111315"/>
+<rect x="458.57" y="138.29" width="5.76" height="5.76" fill="#111315"/>
+<rect x="435.71" y="144.00" width="5.76" height="5.76" fill="#111315"/>
+<rect x="447.14" y="144.00" width="5.76" height="5.76" fill="#111315"/>
+<rect x="458.57" y="144.00" width="5.76" height="5.76" fill="#111315"/>
+<rect x="390.00" y="149.71" width="5.76" height="5.76" fill="#111315"/>
+<rect x="395.71" y="149.71" width="5.76" height="5.76" fill="#111315"/>
+<rect x="401.43" y="149.71" width="5.76" height="5.76" fill="#111315"/>
+<rect x="412.86" y="149.71" width="5.76" height="5.76" fill="#111315"/>
+<rect x="424.29" y="149.71" width="5.76" height="5.76" fill="#111315"/>
+<rect x="430.00" y="149.71" width="5.76" height="5.76" fill="#111315"/>
+<rect x="470.00" y="149.71" width="5.76" height="5.76" fill="#111315"/>
+<rect x="475.71" y="149.71" width="5.76" height="5.76" fill="#111315"/>
+<rect x="487.14" y="149.71" width="5.76" height="5.76" fill="#111315"/>
+<rect x="504.29" y="149.71" width="5.76" height="5.76" fill="#111315"/>
+<rect x="390.00" y="155.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="395.71" y="155.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="401.43" y="155.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="412.86" y="155.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="418.57" y="155.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="430.00" y="155.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="447.14" y="155.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="452.86" y="155.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="470.00" y="155.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="492.86" y="155.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="498.57" y="155.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="504.29" y="155.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="395.71" y="161.14" width="5.76" height="5.76" fill="#111315"/>
+<rect x="407.14" y="161.14" width="5.76" height="5.76" fill="#111315"/>
+<rect x="412.86" y="161.14" width="5.76" height="5.76" fill="#111315"/>
+<rect x="418.57" y="161.14" width="5.76" height="5.76" fill="#111315"/>
+<rect x="424.29" y="161.14" width="5.76" height="5.76" fill="#111315"/>
+<rect x="441.43" y="161.14" width="5.76" height="5.76" fill="#111315"/>
+<rect x="470.00" y="161.14" width="5.76" height="5.76" fill="#111315"/>
+<rect x="498.57" y="161.14" width="5.76" height="5.76" fill="#111315"/>
+<rect x="504.29" y="161.14" width="5.76" height="5.76" fill="#111315"/>
+<rect x="390.00" y="166.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="401.43" y="166.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="407.14" y="166.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="430.00" y="166.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="441.43" y="166.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="447.14" y="166.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="452.86" y="166.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="458.57" y="166.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="464.29" y="166.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="470.00" y="166.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="475.71" y="166.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="498.57" y="166.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="504.29" y="166.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="407.14" y="172.57" width="5.76" height="5.76" fill="#111315"/>
+<rect x="412.86" y="172.57" width="5.76" height="5.76" fill="#111315"/>
+<rect x="424.29" y="172.57" width="5.76" height="5.76" fill="#111315"/>
+<rect x="447.14" y="172.57" width="5.76" height="5.76" fill="#111315"/>
+<rect x="464.29" y="172.57" width="5.76" height="5.76" fill="#111315"/>
+<rect x="475.71" y="172.57" width="5.76" height="5.76" fill="#111315"/>
+<rect x="487.14" y="172.57" width="5.76" height="5.76" fill="#111315"/>
+<rect x="504.29" y="172.57" width="5.76" height="5.76" fill="#111315"/>
+<rect x="458.57" y="178.29" width="5.76" height="5.76" fill="#111315"/>
+<rect x="464.29" y="178.29" width="5.76" height="5.76" fill="#111315"/>
+<rect x="481.43" y="178.29" width="5.76" height="5.76" fill="#111315"/>
+<rect x="487.14" y="178.29" width="5.76" height="5.76" fill="#111315"/>
+<rect x="492.86" y="178.29" width="5.76" height="5.76" fill="#111315"/>
+<rect x="498.57" y="178.29" width="5.76" height="5.76" fill="#111315"/>
+<rect x="504.29" y="178.29" width="5.76" height="5.76" fill="#111315"/>
+<rect x="435.71" y="184.00" width="5.76" height="5.76" fill="#111315"/>
+<rect x="452.86" y="184.00" width="5.76" height="5.76" fill="#111315"/>
+<rect x="464.29" y="184.00" width="5.76" height="5.76" fill="#111315"/>
+<rect x="470.00" y="184.00" width="5.76" height="5.76" fill="#111315"/>
+<rect x="475.71" y="184.00" width="5.76" height="5.76" fill="#111315"/>
+<rect x="481.43" y="184.00" width="5.76" height="5.76" fill="#111315"/>
+<rect x="487.14" y="184.00" width="5.76" height="5.76" fill="#111315"/>
+<rect x="492.86" y="184.00" width="5.76" height="5.76" fill="#111315"/>
+<rect x="435.71" y="189.71" width="5.76" height="5.76" fill="#111315"/>
+<rect x="464.29" y="189.71" width="5.76" height="5.76" fill="#111315"/>
+<rect x="470.00" y="189.71" width="5.76" height="5.76" fill="#111315"/>
+<rect x="475.71" y="189.71" width="5.76" height="5.76" fill="#111315"/>
+<rect x="487.14" y="189.71" width="5.76" height="5.76" fill="#111315"/>
+<rect x="498.57" y="189.71" width="5.76" height="5.76" fill="#111315"/>
+<rect x="435.71" y="195.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="441.43" y="195.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="447.14" y="195.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="452.86" y="195.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="464.29" y="195.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="487.14" y="195.43" width="5.76" height="5.76" fill="#111315"/>
+<rect x="441.43" y="201.14" width="5.76" height="5.76" fill="#111315"/>
+<rect x="464.29" y="201.14" width="5.76" height="5.76" fill="#111315"/>
+<rect x="481.43" y="201.14" width="5.76" height="5.76" fill="#111315"/>
+<rect x="487.14" y="201.14" width="5.76" height="5.76" fill="#111315"/>
+<rect x="498.57" y="201.14" width="5.76" height="5.76" fill="#111315"/>
+<rect x="504.29" y="201.14" width="5.76" height="5.76" fill="#111315"/>
+<rect x="435.71" y="206.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="452.86" y="206.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="464.29" y="206.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="475.71" y="206.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="487.14" y="206.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="492.86" y="206.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="498.57" y="206.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="504.29" y="206.86" width="5.76" height="5.76" fill="#111315"/>
+<rect x="435.71" y="212.57" width="5.76" height="5.76" fill="#111315"/>
+<rect x="441.43" y="212.57" width="5.76" height="5.76" fill="#111315"/>
+<rect x="464.29" y="212.57" width="5.76" height="5.76" fill="#111315"/>
+<rect x="470.00" y="212.57" width="5.76" height="5.76" fill="#111315"/>
+<rect x="475.71" y="212.57" width="5.76" height="5.76" fill="#111315"/>
+<rect x="481.43" y="212.57" width="5.76" height="5.76" fill="#111315"/>
+<rect x="498.57" y="212.57" width="5.76" height="5.76" fill="#111315"/>
+<rect x="504.29" y="212.57" width="5.76" height="5.76" fill="#111315"/>
+<rect x="435.71" y="218.29" width="5.76" height="5.76" fill="#111315"/>
+<rect x="492.86" y="218.29" width="5.76" height="5.76" fill="#111315"/>
+<rect x="504.29" y="218.29" width="5.76" height="5.76" fill="#111315"/>
+<rect x="695" y="90" width="90" height="172" rx="16" fill="#FFFFFF"/><rect x="700" y="95" width="80" height="162" rx="12" fill="#1A1C1F"/>
+<circle cx="740" cy="103" r="2.5" fill="#FFFFFF"/>
+<circle cx="740" cy="166" r="18" fill="#2A2D31"/><path d="M732 166 l6 6 l11 -12" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="740" y="208" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#FFFFFF">Connected</text>
+<text x="740" y="224" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="9" font-weight="400" fill="#A8ABB0">to your computer</text>
+<line x1="294" y1="170" x2="316" y2="170" stroke="#666C74" stroke-width="1.5"/><path d="M309 165.5 L316 170 L309 174.5" fill="none" stroke="#666C74" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="584" y1="170" x2="606" y2="170" stroke="#666C74" stroke-width="1.5"/><path d="M599 165.5 L606 170 L599 174.5" fill="none" stroke="#666C74" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
