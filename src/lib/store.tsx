@@ -29,6 +29,8 @@ type Store = {
   select: (id: string | null) => void;
   push: PushState | null;
   setPushPrefs: (p: PushPrefs) => Promise<void>;
+  /** Registers for notifications again (after permission was granted in Settings). */
+  retryPush: () => void;
   hosts: Host[];
   activeHost: Host | undefined;
   switchHost: (id: string) => void;
@@ -151,6 +153,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, [live, activeHost?.id, api, persist]);
 
   // Native builds: register for push with every paired Mac (titles name the Mac when there are several).
+  const [pushTick, setPushTick] = useState(0);
+  const retryPush = useCallback(() => setPushTick((n) => n + 1), []);
   const pushSig = hosts.map((h) => `${h.id}:${h.key}:${h.lastUrl ?? h.urls[0]}`).join("|");
   useEffect(() => {
     if (!ready || !hosts.length) return;
@@ -162,7 +166,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, pushSig]);
+  }, [ready, pushSig, pushTick]);
 
   // The other Macs: are they reachable, and does anything there need you?
   useEffect(() => {
@@ -386,6 +390,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     select,
     push,
     setPushPrefs,
+    retryPush,
     hosts,
     activeHost,
     switchHost,

@@ -1,4 +1,4 @@
-// The Mac switcher at the top of the sidebar: which Mac's projects you're looking at, a dot when
+// The hub switcher at the top of the sidebar: which Mac's projects you're looking at, a dot when
 // something on another Mac needs you, and a sheet to switch, add, rename or remove Macs.
 import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
@@ -11,7 +11,7 @@ import { AfkMark, CheckIcon, ChevronDown, LaptopIcon, PencilIcon, PlusIcon, Tras
 import { Sheet } from "./Sheet";
 
 /** `header`: the phone's home header (afk mark, larger name, connection dot) instead of the sidebar bar. */
-export function MacSwitcher({ header = false }: { header?: boolean }) {
+export function HubSwitcher({ header = false }: { header?: boolean }) {
   const t = useTheme();
   const s = useMemo(() => styles(t), [t]);
   const { hosts, activeHost, switchHost, removeHost, renameHost, others, live } = useStore();

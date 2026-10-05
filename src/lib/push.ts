@@ -11,6 +11,20 @@ type N = typeof import("expo-notifications");
 // expo-notifications has no web implementation; load it only on native.
 const Notifications: N | null = Platform.OS === "web" ? null : require("expo-notifications");
 
+/** Notification permission right now (null: no notifications here, e.g. the browser). */
+export async function notificationPermission(): Promise<{ granted: boolean; canAskAgain: boolean } | null> {
+  if (!Notifications) return null;
+  const p = await Notifications.getPermissionsAsync();
+  return { granted: p.status === "granted", canAskAgain: p.canAskAgain !== false };
+}
+
+/** Asks for permission; when the system won't ask again, the caller should open system settings. */
+export async function askNotificationPermission(): Promise<{ granted: boolean; canAskAgain: boolean } | null> {
+  if (!Notifications) return null;
+  const p = await Notifications.requestPermissionsAsync();
+  return { granted: p.status === "granted", canAskAgain: p.canAskAgain !== false };
+}
+
 let handlerSet = false;
 let hostSwitcher: ((hubId: string) => void) | null = null;
 

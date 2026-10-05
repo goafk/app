@@ -136,6 +136,7 @@ export function makeApi(conn: Conn) {
     answer: (id: string, requestId: string | number, action: "accept" | "decline" | "cancel", content?: Record<string, unknown>) =>
       call("POST", `/threads/${id}/elicitation`, { requestId, action, content }),
     registerDevice: (d: { token: string; platform: string; name?: string; prefs?: { finished?: boolean; input?: boolean }; showHub?: boolean }) => call("POST", "/devices", d),
+    testPush: (token: string) => call<{ ok: boolean; error?: string }>("POST", "/devices/test", { token }),
     info: () => call<{ id: string; name: string; version: string }>("GET", "/info"),
     newThread: (cwd: string, agentId: string, prompt?: string) => call<SidebarThread>("POST", "/threads", { cwd, agentId, prompt }),
   };

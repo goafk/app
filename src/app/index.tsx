@@ -2,7 +2,7 @@
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Platform, Text, useWindowDimensions, View } from "react-native";
-import { NewThreadSheet, SettingsSheet } from "../components/Dialogs";
+import { NewThreadSheet } from "../components/Dialogs";
 import { Sidebar } from "../components/Sidebar";
 import { EmptyState } from "../components/EmptyState";
 import { ThreadView } from "../components/ThreadView";
@@ -20,7 +20,6 @@ export default function Home() {
   useEffect(() => {
     if (params.new) setNewIn(String(params.new));
   }, [params.new]);
-  const [settings, setSettings] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
@@ -31,7 +30,7 @@ export default function Home() {
       return;
     }
     // "Enter address manually" from the pairing screen, or nothing to talk to yet.
-    setSettings(!!params.settings || !conn.url);
+    if (params.settings || !conn.url) router.push("/settings");
   }, [ready, conn.url, hosts.length, params.settings]);
 
   // Wide layout starts on the most recent thread, like Zed reopening the active one.
@@ -53,7 +52,7 @@ export default function Home() {
       onOpen={(th) => open(th.id)}
       onNewThread={(p) => setNewIn(p.path)}
       onReviewChanges={(p) => router.push(`/changes?cwd=${encodeURIComponent(p.path)}`)}
-      onSettings={() => setSettings(true)}
+      onSettings={() => router.push("/settings")}
       onToggleSidebar={wide ? () => setSidebarOpen((o) => !o) : undefined}
     />
   );
@@ -80,7 +79,6 @@ export default function Home() {
           open(th.id);
         }}
       />
-      <SettingsSheet visible={settings} onClose={() => setSettings(false)} />
     </View>
   );
 }

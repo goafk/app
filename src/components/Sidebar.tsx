@@ -9,7 +9,8 @@ import { ui, useTheme } from "../lib/theme";
 import type { Theme } from "../lib/theme";
 import { BellIcon, ChevronRight, FolderIcon, GitIcon, ClockIcon, GearIcon, PlusIcon, SearchIcon, SidebarIcon, WarningIcon } from "./Icons";
 import { EmptyState } from "./EmptyState";
-import { MacSwitcher } from "./MacSwitcher";
+import { TabBar } from "./TabBar";
+import { HubSwitcher } from "./HubSwitcher";
 import { Sheet } from "./Sheet";
 import { ThreadRow } from "./ThreadRow";
 
@@ -92,7 +93,7 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
 
   return (
     <View style={[s.root, { paddingTop: insets.top }]}>
-      <MacSwitcher header={phone} />
+      <HubSwitcher header={phone} />
       <View style={s.searchBar}>
         <SearchIcon color={t.faint} size={17} />
         <TextInput
@@ -184,19 +185,8 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
             <EmptyState title="No matching threads" body={q.trim() ? `Nothing called "${q.trim()}".` : undefined} />
           )
         }
-        contentContainerStyle={phone ? { paddingBottom: 88 } : undefined}
+        contentContainerStyle={phone ? { paddingBottom: 12 } : undefined}
       />
-      {phone && mode !== "inbox" && projects.length ? (
-        <Pressable
-          onPress={newThread}
-          accessibilityRole="button"
-          accessibilityLabel="New thread"
-          style={({ pressed }) => [s.fab, { bottom: 76 + Math.max(insets.bottom, 8) }, pressed && { transform: [{ scale: 0.96 }] }]}
-        >
-          <PlusIcon color={t.onAccent} size={18} strokeWidth={2.3} />
-          <Text style={s.fabText}>New thread</Text>
-        </Pressable>
-      ) : null}
       <Sheet visible={picking} onClose={() => setPicking(false)} title="New thread in…">
         {recentProjects.map((p) => (
           <Pressable
@@ -256,38 +246,13 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
         </View>
       </Sheet>
       {phone ? (
-        <View style={[s.tabs, { paddingBottom: Math.max(insets.bottom, 8) }]} accessibilityRole="tablist">
-          {(
-            [
-              { key: "projects", label: "Projects", Icon: FolderIcon },
-              { key: "inbox", label: "Needs you", Icon: BellIcon },
-              { key: "history", label: "Recent", Icon: ClockIcon },
-              { key: "settings", label: "Settings", Icon: GearIcon },
-            ] as const
-          ).map(({ key, label, Icon }) => {
-            const on = key === mode;
-            return (
-              <Pressable
-                key={key}
-                onPress={() => (key === "settings" ? onSettings() : setMode(key))}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: on }}
-                accessibilityLabel={key === "inbox" && inboxCount ? `${label}, ${inboxCount}` : label}
-                style={({ pressed }) => [s.tab, pressed && { opacity: 0.6 }]}
-              >
-                <View>
-                  <Icon color={on ? t.text : t.faint} size={22} strokeWidth={on ? 2 : 1.7} />
-                  {key === "inbox" && inboxCount ? (
-                    <View style={[s.tabBadge, { backgroundColor: t.accent, borderColor: t.surface }]}>
-                      <Text style={s.badgeText}>{inboxCount > 99 ? "99+" : inboxCount}</Text>
-                    </View>
-                  ) : null}
-                </View>
-                <Text style={[s.tabText, { color: on ? t.text : t.faint }, on && { fontWeight: "600" }]}>{label}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <TabBar
+          active={mode}
+          inboxCount={inboxCount}
+          onTab={(k) => (k === "settings" ? onSettings() : setMode(k))}
+          onNew={newThread}
+          canNew={projects.length > 0}
+        />
       ) : (
       <View style={[s.bottom, { paddingBottom: Math.max(insets.bottom, 8) }]}>
         <View style={s.bottomLeft}>
@@ -354,16 +319,6 @@ function styles(t: Theme) {
     renameBtn: { height: 42, borderRadius: 10, backgroundColor: t.accent, alignItems: "center", justifyContent: "center", marginBottom: 6 },
     renameBtnText: { color: t.onAccent, fontSize: t.fs(15.5), fontFamily: ui, fontWeight: "600" },
     liveDot: { width: 7, height: 7, borderRadius: 6 },
-    tabs: { flexDirection: "row", paddingTop: 6, paddingHorizontal: 6, borderTopWidth: 1, borderTopColor: t.border, backgroundColor: t.surface },
-    tab: { flex: 1, minHeight: 52, alignItems: "center", justifyContent: "center", gap: 3 },
-    tabText: { fontSize: t.fs(11.5), fontFamily: ui, fontWeight: "500" },
-    tabBadge: { position: "absolute", top: -5, left: 14, minWidth: 18, height: 18, borderRadius: 9, borderWidth: 2, paddingHorizontal: 3, alignItems: "center", justifyContent: "center" },
-    fab: {
-      position: "absolute", right: 16, height: 52, paddingLeft: 16, paddingRight: 20, borderRadius: 18, backgroundColor: t.accent,
-      flexDirection: "row", alignItems: "center", gap: 8,
-      shadowColor: "#000", shadowOpacity: t.dark ? 0.5 : 0.22, shadowRadius: 14, shadowOffset: { width: 0, height: 8 }, elevation: 6,
-    },
-    fabText: { color: t.onAccent, fontSize: t.fs(15.5), fontFamily: ui, fontWeight: "600" },
     pickRow: { flexDirection: "row", alignItems: "center", gap: 12, minHeight: 52, paddingHorizontal: 18 },
   });
 }

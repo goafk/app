@@ -16,7 +16,7 @@ const DENSITY: Option<Appearance["density"]>[] = [{ value: "comfortable", label:
 
 const INSTALL = "curl -fsSL https://goafk.dev/install.sh | sh";
 
-export function AppearanceSettings({ onBack }: { onBack: () => void }) {
+export function AppearanceSettings({ onBack, page = false }: { onBack?: () => void; page?: boolean }) {
   const t = useTheme();
   const s = useMemo(() => styles(t), [t]);
   const { appearance: a, setAppearance, zed, zedError } = useAppearance();
@@ -40,11 +40,13 @@ export function AppearanceSettings({ onBack }: { onBack: () => void }) {
               : "Asking your Mac which theme Zed uses…";
 
   return (
-    <ScrollView style={{ maxHeight: 640 }} contentContainerStyle={{ paddingBottom: 12 }}>
-      <Pressable onPress={onBack} hitSlop={8} style={s.back}>
-        <ChevronLeft color={t.muted} size={18} />
-        <Text style={s.backText}>Settings</Text>
-      </Pressable>
+    <ScrollView style={page ? { flex: 1 } : { maxHeight: 640 }} contentContainerStyle={{ paddingBottom: page ? 40 : 12 }}>
+      {onBack ? (
+        <Pressable onPress={onBack} hitSlop={8} style={s.back}>
+          <ChevronLeft color={t.muted} size={18} />
+          <Text style={s.backText}>Settings</Text>
+        </Pressable>
+      ) : null}
 
       <Text style={s.section}>Theme</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.swatches}>
