@@ -1,4 +1,8 @@
 import type { ZedThemeInfo } from "./theme";
+
+export type SearchHit = { threadId: string; kind: "user" | "agent"; seq: number; snippet: string; title: string; cwd: string; updatedAt: number };
+export type UsageThread = { id: string; title: string; cwd: string; status: string; used?: number; size?: number; cost?: number; week: number; updatedAt: number };
+export type UsageSummary = { currency: string; today: number; days: Array<{ day: string; cost: number }>; threads: UsageThread[] };
 // Client for the afk hub HTTP API.
 import { Platform } from "react-native";
 import { activeConn } from "./hosts";
@@ -114,6 +118,8 @@ export function makeApi(conn: Conn) {
     base,
     token: conn.token,
     sidebar: () => call<{ projects: Project[] }>("GET", "/zed/sidebar"),
+    search: (q: string) => call<{ results: SearchHit[] }>("GET", `/search?q=${encodeURIComponent(q)}`),
+    usage: () => call<UsageSummary>("GET", "/usage"),
     zedTheme: () => call<ZedThemeInfo>("GET", "/zed/theme"),
     gitStatus: (cwd: string) => call<GitStatus>("GET", `/git/status?cwd=${encodeURIComponent(cwd)}`),
     gitDiff: (cwd: string, file: string) => call<{ diff: string }>("GET", `/git/diff?cwd=${encodeURIComponent(cwd)}&file=${encodeURIComponent(file)}`),
@@ -135,7 +141,7 @@ export function makeApi(conn: Conn) {
     permission: (id: string, requestId: string | number, optionId: string) => call("POST", `/threads/${id}/permission`, { requestId, optionId }),
     answer: (id: string, requestId: string | number, action: "accept" | "decline" | "cancel", content?: Record<string, unknown>) =>
       call("POST", `/threads/${id}/elicitation`, { requestId, action, content }),
-    registerDevice: (d: { token: string; platform: string; name?: string; prefs?: { finished?: boolean; input?: boolean }; showHub?: boolean }) => call("POST", "/devices", d),
+    registerDevice: (d: { token: string; platform: string; name?: string; prefs?: { finished?: boolean; input?: boolean; progress?: boolean }; showHub?: boolean }) => call("POST", "/devices", d),
     testPush: (token: string) => call<{ ok: boolean; error?: string }>("POST", "/devices/test", { token }),
     info: () => call<{ id: string; name: string; version: string }>("GET", "/info"),
     newThread: (cwd: string, agentId: string, prompt?: string) => call<SidebarThread>("POST", "/threads", { cwd, agentId, prompt }),

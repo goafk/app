@@ -6,6 +6,7 @@ import { ActivityIndicator, AppState, Linking, Platform, Pressable, ScrollView, 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { makeApi } from "../lib/api";
 import { askNotificationPermission, notificationPermission } from "../lib/push";
+import { clearProgress } from "../lib/notifyActions";
 import { loadPushPrefs, useStore } from "../lib/store";
 import type { PushPrefs } from "../lib/store";
 import { ui, useAppearance, useTheme } from "../lib/theme";
@@ -13,6 +14,7 @@ import type { Theme } from "../lib/theme";
 import { useUpdates } from "../lib/updates";
 import { AfkMark, BellIcon, CheckIcon, ChevronLeft, ChevronRight, LaptopIcon, PlusIcon } from "../components/Icons";
 import { LOCK_AFTER_OPTIONS, useLock } from "../components/LockGate";
+import { money } from "../lib/money";
 
 export default function SettingsScreen() {
   const t = useTheme();
@@ -42,7 +44,7 @@ export default function SettingsScreen() {
     if (p?.granted) retryPush();
     else if (p && !p.canAskAgain) Linking.openSettings();
   };
-  const [prefs, setPrefs] = useState<PushPrefs>({ finished: true, input: true });
+  const [prefs, setPrefs] = useState<PushPrefs>({ finished: true, input: true, progress: true });
   useEffect(() => {
     loadPushPrefs().then(setPrefs);
   }, []);
@@ -50,6 +52,7 @@ export default function SettingsScreen() {
     const next = { ...prefs, [k]: !prefs[k] };
     setPrefs(next);
     setPushPrefs(next);
+    if (k === "progress" && !next.progress) clearProgress();
   };
   const [test, setTest] = useState<{ state: "sending" | "sent" | "error"; msg?: string } | null>(null);
   const sendTest = async () => {
@@ -81,6 +84,12 @@ export default function SettingsScreen() {
     }
   };
 
+  // Today's cost for the Usage row (quietly absent when the hub doesn't report it).
+  const [usageToday, setUsageToday] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    api.usage().then((u) => setUsageToday(`${money(u.today, u.currency)} today`), () => {});
+  }, [api]);
+
   const native = perm !== null;
   const notifOff = native && perm !== undefined && !perm.granted;
 
@@ -110,6 +119,10 @@ export default function SettingsScreen() {
           <Row s={s} t={t} label="Theme" value={appearance.theme === "zed" ? `Match Zed · ${t.name}` : t.name} onPress={() => router.push("/appearance")} />
         </Section>
 
+        <Section s={s} title="Usage">
+          <Row s={s} t={t} label="Cost and context" value={usageToday} onPress={() => router.push("/usage")} />
+        </Section>
+
         <Section s={s} title="Notifications">
           {!native ? <Text style={[s.note, { paddingTop: 14 }]}>Notifications work in the installed app.</Text> : null}
           {native ? (
@@ -126,9 +139,9 @@ export default function SettingsScreen() {
                   </Pressable>
                 )}
               </View>
-              {(["input", "finished"] as const).map((k) => (
+              {(["input", "finished", "progress"] as const).map((k) => (
                 <View key={k} style={s.row}>
-                  <Text style={s.rowLabel}>{k === "input" ? "When a thread needs you" : "When a thread finishes"}</Text>
+                  <Text style={s.rowLabel}>{k === "input" ? "When a thread needs you" : k === "finished" ? "When a thread finishes" : "Live progress while agents work"}</Text>
                   <Switch value={prefs[k]} onValueChange={() => togglePref(k)} trackColor={{ false: t.switchOff, true: t.accent }} thumbColor={prefs[k] ? t.onAccent : "#FFFFFF"} />
                 </View>
               ))}

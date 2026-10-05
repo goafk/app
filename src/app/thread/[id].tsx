@@ -6,13 +6,14 @@ import { ThreadView } from "../../components/ThreadView";
 import { useStore } from "../../lib/store";
 
 export default function ThreadScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, find } = useLocalSearchParams<{ id: string; find?: string }>();
   const { select } = useStore();
   const [newIn, setNewIn] = useState<string | null>(null);
   return (
     <>
       <ThreadView
         id={String(id)}
+        find={find ? String(find) : undefined}
         onBack={() => (router.canGoBack() ? router.back() : router.replace("/"))}
         onNewThread={(cwd) => setNewIn(cwd)}
         onReviewChanges={(cwd) => router.push(`/changes?cwd=${encodeURIComponent(cwd)}`)}

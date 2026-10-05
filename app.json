@@ -3,7 +3,7 @@
     "name": "afk",
     "slug": "zed-threads",
     "scheme": "zedthreads",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",

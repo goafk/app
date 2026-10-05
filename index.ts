@@ -1,4 +1,5 @@
 // App entry: Expo Router, plus the Android home-screen widget's background task handler.
+import "./src/lib/backgroundTask";
 import "expo-router/entry";
 import Constants from "expo-constants";
 import { Platform } from "react-native";

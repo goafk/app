@@ -5,6 +5,7 @@ import * as Device from "expo-device";
 import { router } from "expo-router";
 import { Platform } from "react-native";
 import type { Api } from "./api";
+import { handleNotificationAction, setupNotificationCategories } from "./notifyActions";
 
 type N = typeof import("expo-notifications");
 
@@ -38,8 +39,13 @@ export function setupNotificationHandling(): () => void {
   if (!handlerSet) {
     handlerSet = true;
     Notifications.setNotificationHandler({
-      handleNotification: async () => ({ shouldPlaySound: true, shouldSetBadge: false, shouldShowBanner: true, shouldShowList: true }),
+      // Live progress stays quiet: in the list, no sound or banner.
+      handleNotification: async (n) => {
+        const quiet = !!(n.request.content.data as any)?.progress;
+        return { shouldPlaySound: !quiet, shouldSetBadge: false, shouldShowBanner: !quiet, shouldShowList: true };
+      },
     });
+    setupNotificationCategories();
   }
   const open = (data: any) => {
     // From another Mac: switch to it first, so the thread loads from the right hub.
@@ -48,16 +54,21 @@ export function setupNotificationHandling(): () => void {
     if (data?.threadId) setTimeout(() => router.push(`/thread/${encodeURIComponent(String(data.threadId))}`), data?.hubId ? 600 : 300);
   };
   // Cold start from a tapped notification.
+  // Buttons (Allow, Reject, Reply…) act in place; a plain tap opens the thread.
+  const respond = (r: any) =>
+    handleNotificationAction(r).then((handled) => {
+      if (!handled) open(r.notification.request.content.data);
+    });
   const last = Notifications.getLastNotificationResponse();
-  if (last) open(last.notification.request.content.data);
-  const sub = Notifications.addNotificationResponseReceivedListener((r) => open(r.notification.request.content.data));
+  if (last) respond(last);
+  const sub = Notifications.addNotificationResponseReceivedListener(respond);
   return () => sub.remove();
 }
 
 export type PushState = { status: "unsupported" | "denied" | "registered" | "error"; detail?: string };
 
 /** Registers this phone with the hub. Safe to call repeatedly (the hub dedupes tokens). */
-export async function registerForPush(api: Api, prefs?: { finished?: boolean; input?: boolean }, showHub = false): Promise<PushState> {
+export async function registerForPush(api: Api, prefs?: { finished?: boolean; input?: boolean; progress?: boolean }, showHub = false): Promise<PushState> {
   if (!Notifications) return { status: "unsupported", detail: "Notifications need the installed app (not the browser)." };
   if (!Device.isDevice) return { status: "unsupported", detail: "Push needs a physical device." };
   if (Platform.OS === "android") {

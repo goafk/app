@@ -11,6 +11,7 @@ import { updateWidget } from "./widget";
 import { registerForPush, setHostSwitcher } from "./push";
 import type { PushState } from "./push";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { loadSidebar, saveSidebar } from "./offline";
 import type { HubEvent } from "./sse";
 
 type Store = {
@@ -37,18 +38,20 @@ type Store = {
   addHost: (h: Host) => Promise<void>;
   removeHost: (id: string) => Promise<void>;
   renameHost: (id: string, name: string) => Promise<void>;
+  /** When the Mac can't be reached and the list is a saved copy: when it was saved. */
+  offlineSince: number | null;
   /** Other Macs at a glance: reachable, and how many threads need you there. */
   others: Record<string, { online: boolean; needs: number }>;
 };
 
-export type PushPrefs = { finished: boolean; input: boolean };
+export type PushPrefs = { finished: boolean; input: boolean; progress: boolean };
 const PUSH_KEY = "acp-sync.push";
 
 export async function loadPushPrefs(): Promise<PushPrefs> {
   try {
-    return { finished: true, input: true, ...JSON.parse((await AsyncStorage.getItem(PUSH_KEY)) ?? "{}") };
+    return { finished: true, input: true, progress: true, ...JSON.parse((await AsyncStorage.getItem(PUSH_KEY)) ?? "{}") };
   } catch {
-    return { finished: true, input: true };
+    return { finished: true, input: true, progress: true };
   }
 }
 
@@ -258,11 +261,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     [activeId, persist],
   );
 
+  const offlineKey = activeHost?.id ?? (conn.url || "local");
+  const [offlineSince, setOfflineSince] = useState<number | null>(null);
   const refresh = useCallback(async () => {
     if (!api.base) return;
     try {
       const { projects: ps } = await api.sidebar();
       setProjects(ps);
+      setOfflineSince(null);
+      saveSidebar(offlineKey, ps);
       updateWidget(ps);
       setExpanded((prev) => {
         const next = { ...prev };
@@ -272,8 +279,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setError(null);
     } catch (e: any) {
       setError(e.message);
+      // Can't reach the Mac: show the last saved list rather than nothing.
+      const saved = await loadSidebar(offlineKey);
+      if (saved) {
+        setProjects((cur) => (cur.length ? cur : saved.value));
+        setOfflineSince(saved.savedAt);
+      }
     }
-  }, [api]);
+  }, [api, offlineKey]);
 
   useEffect(() => {
     if (!ready) return;
@@ -391,6 +404,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     push,
     setPushPrefs,
     retryPush,
+    offlineSince,
     hosts,
     activeHost,
     switchHost,

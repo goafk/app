@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import type { Project, SidebarThread } from "../lib/api";
+import type { Project, SearchHit, SidebarThread } from "../lib/api";
 import { useStore } from "../lib/store";
 import { ui, useTheme } from "../lib/theme";
 import type { Theme } from "../lib/theme";
@@ -11,6 +11,8 @@ import { BellIcon, ChevronDown, ChevronRight, FolderIcon, GitIcon, ClockIcon, Ge
 import { EmptyState } from "./EmptyState";
 import { TabBar } from "./TabBar";
 import { HubSwitcher } from "./HubSwitcher";
+import { age } from "../lib/time";
+import { savedAtLabel } from "../lib/offline";
 import { applyOrder, useProjectOrder } from "../lib/projectOrder";
 import { Sheet } from "./Sheet";
 import { ThreadRow } from "./ThreadRow";
@@ -26,6 +28,8 @@ const PAGE = 10;
 
 type Props = {
   onOpen: (t: SidebarThread) => void;
+  /** A message search result: open that thread with the find bar searching for the words. */
+  onOpenHit?: (threadId: string, q: string) => void;
   onNewThread: (p: Project) => void;
   onSettings: () => void;
   onToggleSidebar?: () => void;
@@ -33,11 +37,11 @@ type Props = {
   initialMode?: "projects" | "history" | "inbox";
 };
 
-export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onReviewChanges, initialMode }: Props) {
+export function Sidebar({ onOpen, onOpenHit, onNewThread, onSettings, onToggleSidebar, onReviewChanges, initialMode }: Props) {
   const t = useTheme();
   const s = useMemo(() => styles(t), [t]);
   const insets = useSafeAreaInsets();
-  const { projects: zedProjects, expanded, toggle, selected, error, live, refresh, api, activeHost, conn } = useStore();
+  const { projects: zedProjects, expanded, toggle, selected, error, live, refresh, api, activeHost, conn, offlineSince } = useStore();
   // The user's own project order (per computer), and how many threads each open project shows.
   const { order, setOrder } = useProjectOrder(activeHost?.id ?? conn.url);
   const projects = useMemo(() => applyOrder(zedProjects, order), [zedProjects, order]);
@@ -63,6 +67,20 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
   const [renaming, setRenaming] = useState<SidebarThread | null>(null);
   const [newTitle, setNewTitle] = useState("");
   const [picking, setPicking] = useState(false);
+  // Search inside messages (on the Mac), alongside the title matches.
+  const [hits, setHits] = useState<SearchHit[] | null>(null);
+  useEffect(() => {
+    const needle = q.trim();
+    if (needle.length < 2) return setHits(null);
+    let alive = true;
+    const tm = setTimeout(() => {
+      api.search(needle).then((r) => alive && setHits(r.results), () => alive && setHits([]));
+    }, 280);
+    return () => {
+      alive = false;
+      clearTimeout(tm);
+    };
+  }, [q, api]);
   // Phones get the tab bar + New thread button; wide layouts keep Zed's compact footer.
   const phone = !onToggleSidebar;
   const newThread = () => (projects.length === 1 ? onNewThread(projects[0]) : setPicking(true));
@@ -235,9 +253,11 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
         />
       </View>
       {error ? (
-        <Pressable onPress={onSettings} style={s.error}>
+        <Pressable onPress={offlineSince ? refresh : onSettings} style={[s.error, phone && s.errorPhone]}>
           <WarningIcon color={t.warning} size={15} />
-          <Text style={s.errorText} numberOfLines={2}>{error} — tap to set up the connection</Text>
+          <Text style={s.errorText} numberOfLines={2}>
+            {offlineSince ? `Offline · showing the list saved at ${savedAtLabel(offlineSince)}. Tap to retry.` : `${error} — tap to set up the connection`}
+          </Text>
         </Pressable>
       ) : null}
       <FlatList
@@ -273,8 +293,33 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
             </View>
           );
         }}
+        ListFooterComponent={
+          hits && hits.length && mode !== "inbox" ? (
+            <View style={{ paddingBottom: 8 }}>
+              <Text style={s.hitsHead}>In messages</Text>
+              {hits.map((h) => (
+                <Pressable
+                  key={`${h.threadId}:${h.seq}`}
+                  onPress={() => (onOpenHit ? onOpenHit(h.threadId, q.trim()) : null)}
+                  style={({ pressed }) => [phone ? [s.card, s.cardSmall] : s.hitWide, s.hit, pressed && { backgroundColor: t.hover }]}
+                  accessibilityRole="button"
+                >
+                  <Text style={s.hitTitle} numberOfLines={1}>{h.title}</Text>
+                  <Text style={s.hitSnippet} numberOfLines={3}>
+                    {highlight(h.snippet, q.trim()).map((part, i) => (
+                      <Text key={i} style={part.match ? s.hitMatch : undefined}>{part.text}</Text>
+                    ))}
+                  </Text>
+                  <Text style={s.hitMeta} numberOfLines={1}>
+                    {h.kind === "user" ? "You" : "Agent"} · {h.cwd.split("/").pop()} · {age(h.updatedAt, now)}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          ) : null
+        }
         ListEmptyComponent={
-          error ? null : mode === "inbox" && !q.trim() ? (
+          error || (hits && hits.length && mode !== "inbox") ? null : mode === "inbox" && !q.trim() ? (
             <EmptyState title="Nothing needs you right now" body="When an agent asks for permission, has a question or finishes, it shows up here." />
           ) : !projects.length ? (
             <EmptyState title="Loading your projects" loading />
@@ -461,6 +506,14 @@ function styles(t: Theme) {
     orderRow: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 52, paddingLeft: 18, paddingRight: 12 },
     orderName: { flex: 1, fontSize: t.fs(16), color: t.text, fontFamily: ui },
     orderBtn: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: t.optionBg },
+    hitsHead: { fontSize: t.fs(13), color: t.muted, fontFamily: ui, fontWeight: "500", marginTop: 18, marginBottom: 2, marginHorizontal: 16 },
+    hit: { paddingHorizontal: 16, paddingVertical: t.sp(12), gap: 4 },
+    hitWide: { borderBottomWidth: 1, borderBottomColor: t.border },
+    hitTitle: { fontSize: t.fs(15), color: t.text, fontFamily: ui, fontWeight: "600" },
+    hitSnippet: { fontSize: t.fs(14), color: t.muted, fontFamily: ui, lineHeight: t.fs(20) },
+    hitMatch: { color: t.text, fontWeight: "600", backgroundColor: t.warning + "2E" },
+    hitMeta: { fontSize: t.fs(12.5), color: t.faint, fontFamily: ui },
+    errorPhone: { marginHorizontal: 12, marginTop: 8, borderBottomWidth: 0, borderRadius: 14, backgroundColor: t.warning + "1A" },
     pill: { flexDirection: "row", alignItems: "center", gap: 5, height: 24, paddingHorizontal: 9, borderRadius: 12 },
     pillText: { fontSize: t.fs(12.5), fontFamily: ui, fontWeight: "600" },
     cardSmall: { marginTop: 8, borderRadius: 14 },
@@ -471,4 +524,20 @@ function styles(t: Theme) {
     searchPill: { marginHorizontal: 12, marginBottom: 2, height: 42, borderRadius: 14, borderBottomWidth: 0, paddingHorizontal: 12, backgroundColor: t.dark ? t.optionBg : t.sidebar },
     pickRow: { flexDirection: "row", alignItems: "center", gap: 12, minHeight: 52, paddingHorizontal: 18 },
   });
+}
+
+/** Splits text around case-insensitive matches of q, for highlighting. */
+function highlight(text: string, q: string): Array<{ text: string; match: boolean }> {
+  if (!q) return [{ text, match: false }];
+  const out: Array<{ text: string; match: boolean }> = [];
+  const lower = text.toLowerCase();
+  const needle = q.toLowerCase();
+  let at = 0;
+  for (let i = lower.indexOf(needle); i >= 0; i = lower.indexOf(needle, at)) {
+    if (i > at) out.push({ text: text.slice(at, i), match: false });
+    out.push({ text: text.slice(i, i + needle.length), match: true });
+    at = i + needle.length;
+  }
+  if (at < text.length) out.push({ text: text.slice(at), match: false });
+  return out;
 }

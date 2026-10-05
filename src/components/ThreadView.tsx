@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Entry, PendingElicitation, ThreadDetail } from "../lib/api";
 import { QuestionCard } from "./Question";
 import { KeyboardSafe } from "../lib/keyboard";
+import { loadThread, saveThread, savedAtLabel } from "../lib/offline";
 import { QueuePanel } from "./QueuePanel";
 import { useStore } from "../lib/store";
 import { ui, useTheme } from "../lib/theme";
@@ -16,34 +17,50 @@ import { AgentIcon, ChevronLeft, ExpandIcon, MoreIcon, PlusIcon, SearchIcon, War
 import { PlanBar } from "./PlanBar";
 import { Sheet } from "./Sheet";
 
-type Props = { id: string; onBack?: () => void; onNewThread?: (cwd: string) => void; onToggleWide?: () => void; onReviewChanges?: (cwd: string) => void };
+type Props = { id: string; /** Open with the find bar searching for this. */ find?: string; onBack?: () => void; onNewThread?: (cwd: string) => void; onToggleWide?: () => void; onReviewChanges?: (cwd: string) => void };
 
-export function ThreadView({ id, onBack, onNewThread, onToggleWide, onReviewChanges }: Props) {
+export function ThreadView({ id, find, onBack, onNewThread, onToggleWide, onReviewChanges }: Props) {
   const t = useTheme();
   const s = useMemo(() => styles(t), [t]);
   const insets = useSafeAreaInsets();
-  const { api, onEvent } = useStore();
+  const { api, onEvent, activeHost, conn } = useStore();
   const [thread, setThread] = useState<ThreadDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [menu, setMenu] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [resuming, setResuming] = useState(false);
-  const [findOpen, setFindOpen] = useState(false);
-  const [findQ, setFindQ] = useState("");
+  const [findOpen, setFindOpen] = useState(!!find);
+  const [findQ, setFindQ] = useState(find ?? "");
+  useEffect(() => {
+    if (!find) return;
+    setFindOpen(true);
+    setFindQ(find);
+  }, [find, id]);
   const [findIdx, setFindIdx] = useState(0);
   const listRef = useRef<FlatList<any>>(null);
   const [resumeErr, setResumeErr] = useState<string | null>(null);
   const [permBusy, setPermBusy] = useState<string | null>(null);
   const syncedRef = useRef<boolean | null>(null);
 
+  // Read offline: keep a copy of each thread we open; show it when the Mac can't be reached.
+  const offlineKey = activeHost?.id ?? (conn.url || "local");
+  const [savedAt, setSavedAt] = useState<number | null>(null);
   const load = useCallback(async () => {
     try {
-      setThread(await api.thread(id));
+      const d = await api.thread(id);
+      setThread(d);
+      setSavedAt(null);
       setError(null);
+      saveThread(offlineKey, d);
     } catch (e: any) {
       setError(e.message);
+      const saved = await loadThread(offlineKey, id);
+      if (saved) {
+        setThread((cur) => cur ?? saved.value);
+        setSavedAt(saved.savedAt);
+      }
     }
-  }, [api, id]);
+  }, [api, id, offlineKey]);
 
   useEffect(() => {
     setThread(null);
@@ -336,7 +353,15 @@ export function ThreadView({ id, onBack, onNewThread, onToggleWide, onReviewChan
         ))}
 
         {thread ? (
-          live ? (
+          savedAt ? (
+            <View style={[s.offline, { paddingBottom: (onBack ? insets.bottom : 0) + 14 }]}>
+              <Text style={s.offlineTitle}>Offline · saved copy from {savedAtLabel(savedAt)}</Text>
+              <Text style={s.offlineBody}>You can read it now. It updates, and you can reply, when your computer is reachable again.</Text>
+              <Pressable onPress={load} style={({ pressed }) => [s.offlineBtn, pressed && { opacity: 0.7 }]}>
+                <Text style={s.offlineBtnText}>Try again</Text>
+              </Pressable>
+            </View>
+          ) : live ? (
             <View style={{ paddingBottom: onBack ? insets.bottom : 0, backgroundColor: t.surface }}>
               <QueuePanel
                 items={thread.queued ?? []}
@@ -346,6 +371,7 @@ export function ThreadView({ id, onBack, onNewThread, onToggleWide, onReviewChan
                 onClear={() => queueAction("clear")}
               />
               <Composer
+                cwd={thread.cwd}
                 autoApprove={live ? { on: !!thread.autoApprove, toggle: toggleAutoApprove } : undefined}
                 agentName={thread.agentName ?? "agent"}
                 options={thread.configOptions ?? []}
@@ -435,6 +461,11 @@ function styles(t: Theme) {
     findBar: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 14, height: 44, borderBottomWidth: 1, borderBottomColor: t.border, backgroundColor: t.surface },
     findInput: { flex: 1, fontSize: t.fs(15), color: t.text, fontFamily: ui, outlineStyle: "none" } as any,
     findCount: { fontSize: t.fs(13), color: t.faint, fontFamily: ui, minWidth: 34, textAlign: "right" },
+    offline: { paddingHorizontal: 16, paddingTop: 14, gap: 6, borderTopWidth: 1, borderTopColor: t.border, backgroundColor: t.surface },
+    offlineTitle: { fontSize: t.fs(15), color: t.text, fontFamily: ui, fontWeight: "600" },
+    offlineBody: { fontSize: t.fs(13.5), color: t.muted, fontFamily: ui, lineHeight: t.fs(19) },
+    offlineBtn: { alignSelf: "flex-start", marginTop: 4, height: 38, paddingHorizontal: 16, borderRadius: 19, backgroundColor: t.optionBg, alignItems: "center", justifyContent: "center" },
+    offlineBtnText: { fontSize: t.fs(14.5), color: t.text, fontFamily: ui, fontWeight: "600" },
     headerText: { flex: 1, minWidth: 0, marginLeft: -4 },
     headerTitle: { fontSize: t.fs(16.5), color: t.text, fontFamily: ui, fontWeight: "600" },
     headerSub: { fontSize: t.fs(12.5), color: t.muted, fontFamily: ui, marginTop: 1 },

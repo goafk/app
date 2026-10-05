@@ -1,12 +1,15 @@
 // The message composer, laid out for phones: quick replies, a rounded input, and one row with
 // + (attach) · a settings pill (mode / model / effort / Fast, in one sheet) · context ring · send.
+import { router } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Image, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import type { ConfigOption } from "../lib/api";
 import { ui, useTheme } from "../lib/theme";
 import type { Theme } from "../lib/theme";
-import { ArrowUpIcon, BoltIcon, CheckIcon, ChevronDown, ChevronRight, ExpandIcon, FileIcon, FolderIcon, PlusIcon, StopIcon, XIcon } from "./Icons";
+import { ArrowUpIcon, BoltIcon, CheckIcon, ChevronDown, ChevronRight, ExpandIcon, FileIcon, FolderIcon, PencilIcon, PlusIcon, StopIcon, XIcon } from "./Icons";
+import { QuickRepliesSheet } from "./QuickRepliesSheet";
+import { chipLabel, useQuickReplies } from "../lib/quickReplies";
 import { pickImages } from "../lib/images";
 import type { Attachment } from "../lib/images";
 import { Sheet } from "./Sheet";
@@ -65,6 +68,8 @@ type Props = {
   usage?: { used?: number; size?: number; cost?: { amount: number; currency: string } };
   /** Project file search for "@" mentions. */
   searchFiles?: (q: string) => Promise<FileHit[]>;
+  /** The thread's project folder: quick replies can be set per project. */
+  cwd?: string;
   /** "Approve everything in this thread", shown in the thread settings sheet when given. */
   autoApprove?: { on: boolean; toggle: () => void };
 };
@@ -112,12 +117,10 @@ export function mentionQuery(text: string): string | null {
   return m ? m[2] : null;
 }
 
-/** One-tap replies for steering an agent from the phone. */
-export const QUICK_REPLIES = ["Continue", "Yes, do it", "Run the tests", "Commit it", "Explain what you changed"];
 
 type MenuItem = { kind: "cmd"; cmd: SlashCommand } | { kind: "file"; file: FileHit };
 
-export function Composer({ agentName, options, running, disabled, onSend, onCancel, onConfig, commands = [], searchFiles, usage, autoApprove }: Props) {
+export function Composer({ agentName, options, running, disabled, onSend, onCancel, onConfig, commands = [], searchFiles, usage, autoApprove, cwd }: Props) {
   const t = useTheme();
   const s = useMemo(() => styles(t), [t]);
   const [text, setText] = useState("");
@@ -125,6 +128,8 @@ export function Composer({ agentName, options, running, disabled, onSend, onCanc
   const [sending, setSending] = useState(false);
   const [quickBusy, setQuickBusy] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [quickEdit, setQuickEdit] = useState(false);
+  const quick = useQuickReplies(cwd);
   const [err, setErr] = useState<string | null>(null);
   const [open, setOpen] = useState<ConfigOption | null>(null);
   const [busyOpt, setBusyOpt] = useState<string | null>(null);
@@ -234,10 +239,15 @@ export function Composer({ agentName, options, running, disabled, onSend, onCanc
     <View style={s.root}>
       {!text && (!running || quickBusy) && !disabled ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.quick} keyboardShouldPersistTaps="always">
-          {QUICK_REPLIES.map((q) => (
+          {quick.list.map((q, qi) => (
             <Pressable
-              key={q}
+              key={`${qi}:${q}`}
               disabled={sending}
+              onLongPress={() => {
+                setText(q);
+                inputRef.current?.focus();
+              }}
+              delayLongPress={350}
               onPress={() => {
                 setSending(true);
                 setQuickBusy(q);
@@ -257,9 +267,13 @@ export function Composer({ agentName, options, running, disabled, onSend, onCanc
               ]}
             >
               {quickBusy === q ? <ActivityIndicator size="small" color={t.accent} style={{ transform: [{ scale: 0.7 }], marginVertical: -4 }} /> : null}
-              <Text style={[s.quickText, quickBusy === q && { color: t.accent }]}>{q}</Text>
+              <Text style={[s.quickText, quickBusy === q && { color: t.accent }]}>{chipLabel(q)}</Text>
             </Pressable>
           ))}
+          <Pressable onPress={() => setQuickEdit(true)} style={({ pressed }) => [s.quickChip, s.quickEdit, pressed && { backgroundColor: t.hover }]} accessibilityLabel="Edit quick replies">
+            <PencilIcon color={t.muted} size={14} />
+            <Text style={[s.quickText, { color: t.muted }]}>Edit</Text>
+          </Pressable>
         </ScrollView>
       ) : null}
       <View style={s.card}>
@@ -384,6 +398,7 @@ export function Composer({ agentName, options, running, disabled, onSend, onCanc
       </View>
       </View>
 
+      <QuickRepliesSheet visible={quickEdit} onClose={() => setQuickEdit(false)} cwd={cwd} />
       <Sheet visible={settingsOpen} onClose={() => setSettingsOpen(false)} title="This thread">
         <ScrollView style={{ maxHeight: 560 }} contentContainerStyle={{ paddingBottom: 6 }}>
           {selects.map((o) => {
@@ -453,6 +468,9 @@ export function Composer({ agentName, options, running, disabled, onSend, onCanc
               <View style={[s.meter, { backgroundColor: t.border }]}>
                 <View style={{ width: `${Math.min(100, (usage.used / usage.size) * 100)}%`, height: "100%", backgroundColor: usage.used / usage.size > 0.8 ? t.warning : t.text }} />
               </View>
+              <Pressable onPress={() => { setSettingsOpen(false); setTimeout(() => router.push("/usage"), 250); }} hitSlop={6} style={{ marginTop: 12, alignSelf: "flex-start" }}>
+                <Text style={[s.setLabel, { color: t.text, fontWeight: "600", marginBottom: 0 }]}>Usage across all threads ›</Text>
+              </Pressable>
             </View>
           ) : null}
         </ScrollView>
@@ -522,6 +540,7 @@ function styles(t: Theme) {
     thumbX: { position: "absolute", top: -6, right: -6, width: 20, height: 20, borderRadius: 10, backgroundColor: "rgba(0,0,0,0.65)", alignItems: "center", justifyContent: "center" },
     quick: { gap: 8, paddingBottom: 8, paddingHorizontal: 2 },
     quickChip: { flexDirection: "row", alignItems: "center", gap: 4, minHeight: 36, borderWidth: 1, borderColor: t.border, borderRadius: 18, paddingHorizontal: 14, backgroundColor: t.surface },
+    quickEdit: { borderStyle: "dashed" },
     quickText: { fontSize: t.fs(13.5), color: t.text, fontFamily: ui },
     usage: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 40, paddingHorizontal: 4 },
     toolbar: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 },

@@ -41,15 +41,18 @@ export default function Home() {
     }
   }, [wide, selected, projects, select]);
 
-  const open = (id: string) => {
+  const [findIn, setFindIn] = useState<{ id: string; q: string } | null>(null);
+  const open = (id: string, find?: string) => {
     select(id);
-    if (!wide) router.push(`/thread/${encodeURIComponent(id)}`);
+    setFindIn(find ? { id, q: find } : null);
+    if (!wide) router.push(`/thread/${encodeURIComponent(id)}${find ? `?find=${encodeURIComponent(find)}` : ""}`);
   };
 
   const sidebar = (
     <Sidebar
       initialMode={params.mode === "inbox" ? "inbox" : undefined}
       onOpen={(th) => open(th.id)}
+      onOpenHit={(id, q) => open(id, q)}
       onNewThread={(p) => setNewIn(p.path)}
       onReviewChanges={(p) => router.push(`/changes?cwd=${encodeURIComponent(p.path)}`)}
       onSettings={() => router.push("/settings")}
@@ -63,7 +66,7 @@ export default function Home() {
       {wide ? (
         <View style={{ flex: 1 }}>
           {selected ? (
-            <ThreadView id={selected} onNewThread={(cwd) => setNewIn(cwd)} onToggleWide={() => setSidebarOpen((o) => !o)} onReviewChanges={(cwd) => router.push(`/changes?cwd=${encodeURIComponent(cwd)}`)} />
+            <ThreadView id={selected} find={findIn?.id === selected ? findIn.q : undefined} onNewThread={(cwd) => setNewIn(cwd)} onToggleWide={() => setSidebarOpen((o) => !o)} onReviewChanges={(cwd) => router.push(`/changes?cwd=${encodeURIComponent(cwd)}`)} />
           ) : (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
               <EmptyState title="Pick a thread" body="Choose a thread on the left, or start a new one from a project." />
