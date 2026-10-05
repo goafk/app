@@ -184,6 +184,7 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
       ) : null}
       <FlatList
         data={rows}
+        extraData={rows}
         keyExtractor={(r) => r.key}
         refreshing={refreshing}
         onRefresh={async () => {
@@ -193,17 +194,24 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
         }}
         initialNumToRender={30}
         renderItem={({ item, index }) => {
-          const el = renderRow(item, index);
-          if (!phone) return el;
-          // Phones: each project (or the whole Recent / Needs you list) is a rounded card.
-          const grouped = mode === "projects";
-          const first = index === 0 || (grouped && item.type === "project");
-          const next = rows[index + 1];
-          const last = !next || (grouped && next.type === "project");
+          if (!phone) return renderRow(item, index);
+          // Phones: every card is one view with an even border all round (Android blanks the
+          // content of views that combine uneven borders, rounded corners and clipping).
+          if (mode !== "projects") return <View style={[s.card, s.cardSmall]}>{renderRow(item, index)}</View>;
+          if (item.type !== "project") return null; // drawn inside its project's card
+          const inside: React.ReactNode[] = [];
+          for (let i = index + 1; i < rows.length && rows[i].type !== "project"; i++) {
+            inside.push(
+              <View key={rows[i].key}>
+                <View style={s.divider} />
+                {renderRow(rows[i], i)}
+              </View>,
+            );
+          }
           return (
-            <View style={[s.card, first && s.cardFirst, last && s.cardLast]}>
-              {!first ? <View style={s.divider} /> : null}
-              {el}
+            <View style={s.card}>
+              {renderRow(item, index)}
+              {inside}
             </View>
           );
         }}
@@ -351,9 +359,8 @@ function styles(t: Theme) {
     renameBtn: { height: 42, borderRadius: 10, backgroundColor: t.accent, alignItems: "center", justifyContent: "center", marginBottom: 6 },
     renameBtnText: { color: t.onAccent, fontSize: t.fs(15.5), fontFamily: ui, fontWeight: "600" },
     liveDot: { width: 7, height: 7, borderRadius: 6 },
-    card: { marginHorizontal: 12, backgroundColor: t.surface, borderLeftWidth: 1, borderRightWidth: 1, borderColor: t.border, overflow: "hidden" },
-    cardFirst: { marginTop: 10, borderTopWidth: 1, borderTopLeftRadius: 18, borderTopRightRadius: 18 },
-    cardLast: { borderBottomWidth: 1, borderBottomLeftRadius: 18, borderBottomRightRadius: 18 },
+    card: { marginHorizontal: 12, marginTop: 10, backgroundColor: t.surface, borderWidth: 1, borderColor: t.border, borderRadius: 18, overflow: "hidden" },
+    cardSmall: { marginTop: 8, borderRadius: 14 },
     divider: { height: StyleSheet.hairlineWidth, backgroundColor: t.border, marginLeft: 50 },
     projectCard: { flexDirection: "row", alignItems: "center", gap: 6, paddingLeft: 16, paddingRight: 14, minHeight: 54, backgroundColor: t.surface },
     projectNameCard: { fontWeight: "600", fontSize: t.fs(16) },
