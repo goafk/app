@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Platform, Text, useWindowDimensions, View } from "react-native";
 import { NewThreadSheet, SettingsSheet } from "../components/Dialogs";
 import { Sidebar } from "../components/Sidebar";
+import { EmptyState } from "../components/EmptyState";
 import { ThreadView } from "../components/ThreadView";
 import { useStore } from "../lib/store";
 import { ui, useTheme } from "../lib/theme";
@@ -66,7 +67,7 @@ export default function Home() {
             <ThreadView id={selected} onNewThread={(cwd) => setNewIn(cwd)} onToggleWide={() => setSidebarOpen((o) => !o)} onReviewChanges={(cwd) => router.push(`/changes?cwd=${encodeURIComponent(cwd)}`)} />
           ) : (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-              <Text style={{ color: t.faint, fontFamily: ui, fontSize: 15 }}>Select a thread</Text>
+              <EmptyState title="Pick a thread" body="Choose a thread on the left, or start a new one from a project." />
             </View>
           )}
         </View>

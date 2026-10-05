@@ -7,10 +7,11 @@ import type { Host } from "../lib/hosts";
 import { useStore } from "../lib/store";
 import { ui, useTheme } from "../lib/theme";
 import type { Theme } from "../lib/theme";
-import { CheckIcon, ChevronDown, LaptopIcon, PencilIcon, PlusIcon, TrashIcon } from "./Icons";
+import { AfkMark, CheckIcon, ChevronDown, LaptopIcon, PencilIcon, PlusIcon, TrashIcon } from "./Icons";
 import { Sheet } from "./Sheet";
 
-export function MacSwitcher() {
+/** `header`: the phone's home header (afk mark, larger name, connection dot) instead of the sidebar bar. */
+export function MacSwitcher({ header = false }: { header?: boolean }) {
   const t = useTheme();
   const s = useMemo(() => styles(t), [t]);
   const { hosts, activeHost, switchHost, removeHost, renameHost, others, live } = useStore();
@@ -18,7 +19,12 @@ export function MacSwitcher() {
   const [editing, setEditing] = useState<{ id: string; name: string } | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
   const elsewhere = Object.values(others).reduce((n, o) => n + o.needs, 0);
-  if (!activeHost) return null;
+  if (!activeHost)
+    return header ? (
+      <View style={[s.bar, s.header]}>
+        <AfkMark size={22} bar={t.text} />
+      </View>
+    ) : null;
 
   const close = () => {
     setOpen(false);
@@ -38,14 +44,15 @@ export function MacSwitcher() {
     <>
       <Pressable
         onPress={() => setOpen(true)}
-        style={({ pressed }) => [s.bar, pressed && { backgroundColor: t.hover }]}
-        accessibilityLabel={`Mac: ${activeHost.name}. Switch Mac`}
+        style={({ pressed }) => [s.bar, header && s.header, pressed && { backgroundColor: t.hover }]}
+        accessibilityLabel={`Mac: ${activeHost.name}, ${live ? "connected" : "connecting"}. Switch Mac`}
       >
-        <LaptopIcon color={t.muted} size={17} />
-        <Text style={s.name} numberOfLines={1}>
+        {header ? <AfkMark size={22} bar={t.text} /> : <LaptopIcon color={t.muted} size={17} />}
+        <Text style={[s.name, header && s.headerName]} numberOfLines={1}>
           {activeHost.name}
         </Text>
         <ChevronDown color={t.faint} size={14} />
+        {header ? <View style={[s.live, { backgroundColor: live ? t.success : t.faint }]} /> : null}
         {elsewhere ? (
           <View style={[s.badge, { backgroundColor: t.accent }]}>
             <Text style={s.badgeText}>{elsewhere > 99 ? "99+" : elsewhere} elsewhere</Text>
@@ -131,6 +138,9 @@ export function MacSwitcher() {
 function styles(t: Theme) {
   return StyleSheet.create({
     bar: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16, minHeight: 46, borderBottomWidth: 1, borderBottomColor: t.border },
+    header: { minHeight: 56, borderBottomWidth: 0, gap: 10 },
+    headerName: { fontSize: t.fs(18), letterSpacing: -0.2 },
+    live: { width: 7, height: 7, borderRadius: 4, marginLeft: 2 },
     name: { flexShrink: 1, fontSize: t.fs(16), color: t.text, fontFamily: ui, fontWeight: "600" },
     badge: { marginLeft: "auto", borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 },
     badgeText: { color: t.onAccent, fontSize: t.fs(12), fontFamily: ui, fontWeight: "600" },

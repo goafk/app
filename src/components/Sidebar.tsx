@@ -1,4 +1,5 @@
 // Zed's Threads sidebar: search, project groups (collapsible), threads with agent icon + age.
+// On phones it's the home screen: afk header, a labelled tab bar and a New thread button.
 import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -6,7 +7,8 @@ import type { Project, SidebarThread } from "../lib/api";
 import { useStore } from "../lib/store";
 import { ui, useTheme } from "../lib/theme";
 import type { Theme } from "../lib/theme";
-import { BellIcon, GitIcon, ClockIcon, GearIcon, PlusIcon, SearchIcon, SidebarIcon, WarningIcon } from "./Icons";
+import { BellIcon, ChevronRight, FolderIcon, GitIcon, ClockIcon, GearIcon, PlusIcon, SearchIcon, SidebarIcon, WarningIcon } from "./Icons";
+import { EmptyState } from "./EmptyState";
 import { MacSwitcher } from "./MacSwitcher";
 import { Sheet } from "./Sheet";
 import { ThreadRow } from "./ThreadRow";
@@ -40,6 +42,15 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
   const [menu, setMenu] = useState<SidebarThread | null>(null);
   const [renaming, setRenaming] = useState<SidebarThread | null>(null);
   const [newTitle, setNewTitle] = useState("");
+  const [picking, setPicking] = useState(false);
+  // Phones get the tab bar + New thread button; wide layouts keep Zed's compact footer.
+  const phone = !onToggleSidebar;
+  const newThread = () => (projects.length === 1 ? onNewThread(projects[0]) : setPicking(true));
+  // Projects for the picker: most recently active first.
+  const recentProjects = useMemo(
+    () => [...projects].sort((a, b) => Math.max(0, ...b.threads.map((x) => x.updatedAt)) - Math.max(0, ...a.threads.map((x) => x.updatedAt))),
+    [projects],
+  );
 
   const needsYou = (th: SidebarThread) => !th.archived && (th.status === "needs_permission" || !!th.unread);
   const inboxCount = useMemo(() => projects.reduce((n, p) => n + p.threads.filter(needsYou).length, 0), [projects]);
@@ -81,7 +92,7 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
 
   return (
     <View style={[s.root, { paddingTop: insets.top }]}>
-      <MacSwitcher />
+      <MacSwitcher header={phone} />
       <View style={s.searchBar}>
         <SearchIcon color={t.faint} size={17} />
         <TextInput
@@ -165,14 +176,45 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
           );
         }}
         ListEmptyComponent={
-          !error ? (
-            <View style={s.empty}>
-              <Text style={s.emptyText}>{mode === "inbox" ? "Nothing needs you right now" : projects.length ? "No matching threads" : "Loading…"}</Text>
-            </View>
-          ) : null
+          error ? null : mode === "inbox" && !q.trim() ? (
+            <EmptyState title="Nothing needs you right now" body="When an agent asks for permission, has a question or finishes, it shows up here." />
+          ) : !projects.length ? (
+            <EmptyState title="Loading your projects" loading />
+          ) : (
+            <EmptyState title="No matching threads" body={q.trim() ? `Nothing called "${q.trim()}".` : undefined} />
+          )
         }
+        contentContainerStyle={phone ? { paddingBottom: 88 } : undefined}
       />
-      {mode !== "projects" ? (
+      {phone && mode !== "inbox" && projects.length ? (
+        <Pressable
+          onPress={newThread}
+          accessibilityRole="button"
+          accessibilityLabel="New thread"
+          style={({ pressed }) => [s.fab, { bottom: 76 + Math.max(insets.bottom, 8) }, pressed && { transform: [{ scale: 0.96 }] }]}
+        >
+          <PlusIcon color={t.onAccent} size={18} strokeWidth={2.3} />
+          <Text style={s.fabText}>New thread</Text>
+        </Pressable>
+      ) : null}
+      <Sheet visible={picking} onClose={() => setPicking(false)} title="New thread in…">
+        {recentProjects.map((p) => (
+          <Pressable
+            key={p.path}
+            onPress={() => {
+              setPicking(false);
+              onNewThread(p);
+            }}
+            style={({ pressed }) => [s.pickRow, pressed && { backgroundColor: t.hover }]}
+          >
+            <FolderIcon color={t.muted} size={18} />
+            <Text style={s.menuText} numberOfLines={1}>{p.name}</Text>
+            <View style={{ flex: 1 }} />
+            <ChevronRight color={t.faint} size={16} />
+          </Pressable>
+        ))}
+      </Sheet>
+      {!phone && mode !== "projects" ? (
         <View style={s.modeBar}>
           <Text style={s.modeText}>{mode === "inbox" ? "Needs you" : "All threads"}</Text>
           <Pressable hitSlop={8} onPress={() => setMode("projects")}>
@@ -213,11 +255,45 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
           ) : null}
         </View>
       </Sheet>
+      {phone ? (
+        <View style={[s.tabs, { paddingBottom: Math.max(insets.bottom, 8) }]} accessibilityRole="tablist">
+          {(
+            [
+              { key: "projects", label: "Projects", Icon: FolderIcon },
+              { key: "inbox", label: "Needs you", Icon: BellIcon },
+              { key: "history", label: "Recent", Icon: ClockIcon },
+              { key: "settings", label: "Settings", Icon: GearIcon },
+            ] as const
+          ).map(({ key, label, Icon }) => {
+            const on = key === mode;
+            return (
+              <Pressable
+                key={key}
+                onPress={() => (key === "settings" ? onSettings() : setMode(key))}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: on }}
+                accessibilityLabel={key === "inbox" && inboxCount ? `${label}, ${inboxCount}` : label}
+                style={({ pressed }) => [s.tab, pressed && { opacity: 0.6 }]}
+              >
+                <View>
+                  <Icon color={on ? t.text : t.faint} size={22} strokeWidth={on ? 2 : 1.7} />
+                  {key === "inbox" && inboxCount ? (
+                    <View style={[s.tabBadge, { backgroundColor: t.accent, borderColor: t.surface }]}>
+                      <Text style={s.badgeText}>{inboxCount > 99 ? "99+" : inboxCount}</Text>
+                    </View>
+                  ) : null}
+                </View>
+                <Text style={[s.tabText, { color: on ? t.text : t.faint }, on && { fontWeight: "600" }]}>{label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      ) : (
       <View style={[s.bottom, { paddingBottom: Math.max(insets.bottom, 8) }]}>
         <View style={s.bottomLeft}>
-          {/* Wide layouts: show / hide the thread list. Phones: back to the Projects view. */}
-          <Pressable hitSlop={8} onPress={onToggleSidebar ?? (() => setMode("projects"))} accessibilityLabel={onToggleSidebar ? "Toggle sidebar" : "Projects"}>
-            <SidebarIcon color={!onToggleSidebar && mode === "projects" ? t.accent : t.muted} size={18} />
+          {/* Wide layouts only (phones use the tab bar): show / hide the thread list. */}
+          <Pressable hitSlop={8} onPress={onToggleSidebar} accessibilityLabel="Toggle sidebar">
+            <SidebarIcon color={t.muted} size={18} />
           </Pressable>
           <Pressable hitSlop={8} onPress={() => setMode((m) => (m === "history" ? "projects" : "history"))}>
             <ClockIcon color={history ? t.accent : t.muted} size={18} />
@@ -238,6 +314,7 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
           </Pressable>
         </View>
       </View>
+      )}
     </View>
   );
 }
@@ -277,5 +354,16 @@ function styles(t: Theme) {
     renameBtn: { height: 42, borderRadius: 10, backgroundColor: t.accent, alignItems: "center", justifyContent: "center", marginBottom: 6 },
     renameBtnText: { color: t.onAccent, fontSize: t.fs(15.5), fontFamily: ui, fontWeight: "600" },
     liveDot: { width: 7, height: 7, borderRadius: 6 },
+    tabs: { flexDirection: "row", paddingTop: 6, paddingHorizontal: 6, borderTopWidth: 1, borderTopColor: t.border, backgroundColor: t.surface },
+    tab: { flex: 1, minHeight: 52, alignItems: "center", justifyContent: "center", gap: 3 },
+    tabText: { fontSize: t.fs(11.5), fontFamily: ui, fontWeight: "500" },
+    tabBadge: { position: "absolute", top: -5, left: 14, minWidth: 18, height: 18, borderRadius: 9, borderWidth: 2, paddingHorizontal: 3, alignItems: "center", justifyContent: "center" },
+    fab: {
+      position: "absolute", right: 16, height: 52, paddingLeft: 16, paddingRight: 20, borderRadius: 18, backgroundColor: t.accent,
+      flexDirection: "row", alignItems: "center", gap: 8,
+      shadowColor: "#000", shadowOpacity: t.dark ? 0.5 : 0.22, shadowRadius: 14, shadowOffset: { width: 0, height: 8 }, elevation: 6,
+    },
+    fabText: { color: t.onAccent, fontSize: t.fs(15.5), fontFamily: ui, fontWeight: "600" },
+    pickRow: { flexDirection: "row", alignItems: "center", gap: 12, minHeight: 52, paddingHorizontal: 18 },
   });
 }

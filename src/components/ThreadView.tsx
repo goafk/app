@@ -202,7 +202,14 @@ export function ThreadView({ id, onBack, onNewThread, onToggleWide, onReviewChan
           </Pressable>
         ) : null}
         <AgentIcon kind={thread?.kind ?? "claude"} color={t.muted} size={19} />
-        <Text style={s.headerTitle} numberOfLines={1}>{thread?.title ?? " "}</Text>
+        <View style={s.headerText}>
+          <Text style={s.headerTitle} numberOfLines={1}>{thread?.title ?? " "}</Text>
+          {thread ? (
+            <Text style={s.headerSub} numberOfLines={1}>
+              {[thread.cwd?.replace(/\/$/, "").split("/").pop(), thread.agentName].filter(Boolean).join(" · ")}
+            </Text>
+          ) : null}
+        </View>
         {thread?.autoApprove ? (
           <View style={s.autoBadge}>
             <Text style={s.autoBadgeText}>auto</Text>
@@ -339,6 +346,7 @@ export function ThreadView({ id, onBack, onNewThread, onToggleWide, onReviewChan
                 onClear={() => queueAction("clear")}
               />
               <Composer
+                autoApprove={live ? { on: !!thread.autoApprove, toggle: toggleAutoApprove } : undefined}
                 agentName={thread.agentName ?? "agent"}
                 options={thread.configOptions ?? []}
                 commands={thread.availableCommands ?? []}
@@ -421,13 +429,15 @@ export function ThreadView({ id, onBack, onNewThread, onToggleWide, onReviewChan
 function styles(t: Theme) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: t.panel },
-    header: { flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 14, height: 52, borderBottomWidth: 1, borderBottomColor: t.border, backgroundColor: t.panel },
+    header: { flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 14, height: 58, borderBottomWidth: 1, borderBottomColor: t.border, backgroundColor: t.panel },
     autoBadge: { backgroundColor: t.warning, borderRadius: 6, paddingHorizontal: 6, paddingVertical: t.sp(1) },
     autoBadgeText: { color: readableOn(t.warning), fontSize: t.fs(11), fontWeight: "700", fontFamily: ui, textTransform: "uppercase" },
     findBar: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 14, height: 44, borderBottomWidth: 1, borderBottomColor: t.border, backgroundColor: t.surface },
     findInput: { flex: 1, fontSize: t.fs(15), color: t.text, fontFamily: ui, outlineStyle: "none" } as any,
     findCount: { fontSize: t.fs(13), color: t.faint, fontFamily: ui, minWidth: 34, textAlign: "right" },
-    headerTitle: { flex: 1, fontSize: t.fs(17), color: t.text, fontFamily: ui, marginLeft: -4 },
+    headerText: { flex: 1, minWidth: 0, marginLeft: -4 },
+    headerTitle: { fontSize: t.fs(16.5), color: t.text, fontFamily: ui, fontWeight: "600" },
+    headerSub: { fontSize: t.fs(12.5), color: t.muted, fontFamily: ui, marginTop: 1 },
     list: { paddingHorizontal: 18, paddingTop: 8, paddingBottom: 18 },
     center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 10, padding: 24 },
     muted: { color: t.muted, fontSize: t.fs(15), fontFamily: ui, textAlign: "center" },
