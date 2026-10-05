@@ -53,7 +53,8 @@ class AfkLiveModule : Module() {
     Function("supported") { Build.VERSION.SDK_INT >= 36 }
 
     /** Shows or updates the live notification for one thread. Returns whether it qualifies for promotion. */
-    Function("show") { key: String, title: String, text: String, chip: String, done: Int, total: Int, url: String ->
+    /** `promote`: ask for the status-bar chip (the user can turn that off in afk's Settings). */
+    Function("show") { key: String, title: String, text: String, chip: String, done: Int, total: Int, url: String, promote: Boolean ->
       ensureChannel()
       val open = PendingIntent.getActivity(
         context,
@@ -79,8 +80,10 @@ class AfkLiveModule : Module() {
           style.setProgressIndeterminate(true)
         }
         b.setStyle(style)
-        if (chip.isNotEmpty()) b.setShortCriticalText(chip)
-        b.extras.putBoolean(EXTRA_REQUEST_PROMOTED, true)
+        if (promote) {
+          if (chip.isNotEmpty()) b.setShortCriticalText(chip)
+          b.extras.putBoolean(EXTRA_REQUEST_PROMOTED, true)
+        }
       } else if (total > 0) {
         b.setProgress(total, done.coerceIn(0, total), false)
       } else {

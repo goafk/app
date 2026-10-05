@@ -7,7 +7,7 @@
 import { Platform } from "react-native";
 import { makeApi } from "./api";
 import { connOf, loadHosts } from "./hosts";
-import { afkLive } from "../../modules/afk-live";
+import { afkLive, liveInStatusBar } from "../../modules/afk-live";
 
 type N = typeof import("expo-notifications");
 const Notifications: N | null = Platform.OS === "web" ? null : require("expo-notifications");
@@ -106,6 +106,7 @@ export async function showProgress(p: ProgressPush): Promise<void> {
           p.done ?? 0,
           p.total ?? 0,
           `zedthreads://thread/${encodeURIComponent(p.threadId)}`,
+          await liveInStatusBar(),
         );
       }
       return;
