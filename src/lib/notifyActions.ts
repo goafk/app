@@ -7,6 +7,7 @@
 import { Platform } from "react-native";
 import { makeApi } from "./api";
 import { connOf, loadHosts } from "./hosts";
+import { afkLive } from "../../modules/afk-live";
 
 type N = typeof import("expo-notifications");
 const Notifications: N | null = Platform.OS === "web" ? null : require("expo-notifications");
@@ -89,6 +90,29 @@ export type ProgressPush = { kind: "progress"; hubId: string; hubName?: string; 
 export async function showProgress(p: ProgressPush): Promise<void> {
   if (!Notifications || Platform.OS !== "android") return;
   const identifier = `progress:${p.hubId}:${p.threadId}`;
+  // Android 16: a Live Update, shown in the status-bar chip by the camera (and on the lock screen).
+  const live = afkLive();
+  if (live) {
+    try {
+      if (!p.running) live.dismiss(identifier);
+      else {
+        const waiting = p.step === "Waiting for you";
+        const chip = waiting ? "Needs you" : p.total ? `${p.done ?? 0}/${p.total}` : "Working";
+        live.show(
+          identifier,
+          `${p.hubName ? `${p.hubName} · ` : ""}${p.project} · ${p.title}`,
+          p.step ?? "Working…",
+          chip,
+          p.done ?? 0,
+          p.total ?? 0,
+          `zedthreads://thread/${encodeURIComponent(p.threadId)}`,
+        );
+      }
+      return;
+    } catch {
+      // Fall back to a regular notification below.
+    }
+  }
   if (!p.running) {
     await Notifications.dismissNotificationAsync(identifier).catch(() => {});
     return;
@@ -128,6 +152,9 @@ export function pushData(payload: any): any {
 /** Removes every live-progress notification (when the setting is turned off). */
 export async function clearProgress(): Promise<void> {
   if (!Notifications) return;
+  try {
+    afkLive()?.dismissAll();
+  } catch {}
   const shown = await Notifications.getPresentedNotificationsAsync().catch(() => []);
   await Promise.all(shown.filter((n) => (n.request.content.data as any)?.progress).map((n) => Notifications.dismissNotificationAsync(n.request.identifier).catch(() => {})));
 }

@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { makeApi } from "../lib/api";
 import { askNotificationPermission, notificationPermission } from "../lib/push";
 import { clearProgress } from "../lib/notifyActions";
+import { afkLive } from "../../modules/afk-live";
 import { loadPushPrefs, useStore } from "../lib/store";
 import type { PushPrefs } from "../lib/store";
 import { ui, useAppearance, useTheme } from "../lib/theme";
@@ -90,6 +91,14 @@ export default function SettingsScreen() {
     api.usage().then((u) => setUsageToday(`${money(u.today, u.currency)} today`), () => {});
   }, [api]);
 
+  // Android 16 Live Updates: is afk allowed in the status-bar chip? (Re-checked on return from settings.)
+  const liveMod = afkLive();
+  const [livePromoted, setLivePromoted] = useState(() => !!liveMod?.canPromote());
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (st) => st === "active" && setLivePromoted(!!liveMod?.canPromote()));
+    return () => sub.remove();
+  }, [liveMod]);
+
   const native = perm !== null;
   const notifOff = native && perm !== undefined && !perm.granted;
 
@@ -145,6 +154,15 @@ export default function SettingsScreen() {
                   <Switch value={prefs[k]} onValueChange={() => togglePref(k)} trackColor={{ false: t.switchOff, true: t.accent }} thumbColor={prefs[k] ? t.onAccent : "#FFFFFF"} />
                 </View>
               ))}
+              {prefs.progress && liveMod?.supported() && !livePromoted ? (
+                <Pressable onPress={() => liveMod.openSettings()} style={({ pressed }) => [s.row, pressed && { backgroundColor: t.hover }]}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.rowLabel}>Show progress in the status bar</Text>
+                    <Text style={[s.note, { paddingHorizontal: 0, paddingBottom: 0, paddingTop: 2 }]}>Allow "Live updates" for afk, so it appears next to the camera.</Text>
+                  </View>
+                  <Text style={[s.rowValue, s.link]}>Turn on</Text>
+                </Pressable>
+              ) : null}
               <Pressable onPress={sendTest} disabled={push?.status !== "registered" || test?.state === "sending"} style={({ pressed }) => [s.row, pressed && { backgroundColor: t.hover }]}>
                 <Text style={[s.rowLabel, push?.status !== "registered" && { color: t.faint }]}>Send a test notification</Text>
                 {test?.state === "sending" ? <ActivityIndicator size="small" color={t.faint} /> : test?.state === "sent" ? <CheckIcon color={t.success} size={18} /> : <ChevronRight color={t.faint} size={16} />}
