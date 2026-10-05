@@ -1,7 +1,7 @@
 // Zed's Threads sidebar: search, project groups (collapsible), threads with agent icon + age.
 // On phones it's the home screen: afk header, a labelled tab bar and a New thread button.
 import React, { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Project, SidebarThread } from "../lib/api";
 import { useStore } from "../lib/store";
@@ -11,13 +11,18 @@ import { BellIcon, ChevronDown, ChevronRight, FolderIcon, GitIcon, ClockIcon, Ge
 import { EmptyState } from "./EmptyState";
 import { TabBar } from "./TabBar";
 import { HubSwitcher } from "./HubSwitcher";
+import { applyOrder, useProjectOrder } from "../lib/projectOrder";
 import { Sheet } from "./Sheet";
 import { ThreadRow } from "./ThreadRow";
 
 type Row =
   | { type: "project"; key: string; project: Project; open: boolean }
   | { type: "thread"; key: string; thread: SidebarThread; project: Project }
-  | { type: "empty"; key: string };
+  | { type: "empty"; key: string }
+  | { type: "more"; key: string; project: Project; remaining: number };
+
+/** Threads shown per open project before "Show more". */
+const PAGE = 10;
 
 type Props = {
   onOpen: (t: SidebarThread) => void;
@@ -32,7 +37,21 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
   const t = useTheme();
   const s = useMemo(() => styles(t), [t]);
   const insets = useSafeAreaInsets();
-  const { projects, expanded, toggle, selected, error, live, refresh, api } = useStore();
+  const { projects: zedProjects, expanded, toggle, selected, error, live, refresh, api, activeHost, conn } = useStore();
+  // The user's own project order (per computer), and how many threads each open project shows.
+  const { order, setOrder } = useProjectOrder(activeHost?.id ?? conn.url);
+  const projects = useMemo(() => applyOrder(zedProjects, order), [zedProjects, order]);
+  const [shown, setShown] = useState<Record<string, number>>({});
+  const [projectMenu, setProjectMenu] = useState<Project | null>(null);
+  const [reordering, setReordering] = useState(false);
+  const move = (path: string, to: number | "top") => {
+    const list = projects.map((p) => p.path);
+    const from = list.indexOf(path);
+    if (from < 0) return;
+    list.splice(from, 1);
+    list.splice(to === "top" ? 0 : Math.max(0, Math.min(list.length, to)), 0, path);
+    setOrder(list);
+  };
   const [q, setQ] = useState("");
   const [mode, setMode] = useState<"projects" | "history" | "inbox">(initialMode ?? "projects");
   useEffect(() => {
@@ -84,10 +103,13 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
       out.push({ type: "project", key: `p:${p.path}`, project: p, open });
       if (!open) continue;
       if (!matches.length) out.push({ type: "empty", key: `e:${p.path}` });
-      for (const th of matches) out.push({ type: "thread", key: `t:${th.id}`, thread: th, project: p });
+      // Long projects: the newest few, then "Show more" (searching shows every match).
+      const limit = needle ? matches.length : shown[p.path] ?? PAGE;
+      for (const th of matches.slice(0, limit)) out.push({ type: "thread", key: `t:${th.id}`, thread: th, project: p });
+      if (matches.length > limit) out.push({ type: "more", key: `m:${p.path}`, project: p, remaining: matches.length - limit });
     }
     return out;
-  }, [projects, expanded, q, mode]);
+  }, [projects, expanded, q, mode, shown]);
 
   const now = Date.now();
 
@@ -117,7 +139,8 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
       return (
         <Pressable
           onPress={() => toggle(item.project.path)}
-          onLongPress={() => onReviewChanges?.(item.project)}
+          onLongPress={() => setProjectMenu(item.project)}
+          delayLongPress={350}
           style={({ pressed }) => [phone ? s.projectCard : [s.project, afterThread && s.projectTop], pressed && { backgroundColor: t.hover }]}
         >
           <Text style={[s.projectName, phone && s.projectNameCard]} numberOfLines={1}>{item.project.name}</Text>
@@ -154,6 +177,19 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
           ) : (
             actions
           )}
+        </Pressable>
+      );
+    }
+    if (item.type === "more") {
+      const step = Math.min(20, item.remaining);
+      return (
+        <Pressable
+          onPress={() => setShown((m) => ({ ...m, [item.project.path]: (m[item.project.path] ?? PAGE) + 20 }))}
+          style={({ pressed }) => [s.more, { backgroundColor: phone ? t.surface : t.sidebar }, pressed && { backgroundColor: t.hover }]}
+          accessibilityRole="button"
+        >
+          <Text style={s.moreText}>Show {step} more</Text>
+          <Text style={s.moreCount}>{item.remaining} older</Text>
         </Pressable>
       );
     }
@@ -248,6 +284,43 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
         }
         contentContainerStyle={phone ? { paddingBottom: 24 } : undefined}
       />
+      <Sheet visible={!!projectMenu} onClose={() => setProjectMenu(null)} title={projectMenu?.name}>
+        {projectMenu
+          ? [
+              { label: "New thread", run: () => onNewThread(projectMenu) },
+              ...(onReviewChanges ? [{ label: "Review changes", run: () => onReviewChanges(projectMenu) }] : []),
+              ...(projects[0]?.path !== projectMenu.path ? [{ label: "Move to top", run: () => move(projectMenu.path, "top") }] : []),
+              { label: "Reorder projects…", run: () => setTimeout(() => setReordering(true), 280) },
+            ].map((a) => (
+              <Pressable key={a.label} onPress={() => { setProjectMenu(null); a.run(); }} style={({ pressed }) => [s.menuItem, pressed && { backgroundColor: t.hover }]}>
+                <Text style={s.menuText}>{a.label}</Text>
+              </Pressable>
+            ))
+          : null}
+      </Sheet>
+      <Sheet visible={reordering} onClose={() => setReordering(false)} title="Reorder projects">
+        <ScrollView style={{ maxHeight: 480 }}>
+          {projects.map((p, i) => (
+            <View key={p.path} style={s.orderRow}>
+              <Text style={s.orderName} numberOfLines={1}>{p.name}</Text>
+              <Pressable disabled={i === 0} onPress={() => move(p.path, i - 1)} hitSlop={6} style={[s.orderBtn, i === 0 && { opacity: 0.3 }]} accessibilityLabel={`Move ${p.name} up`}>
+                <View style={{ transform: [{ rotate: "180deg" }] }}>
+                  <ChevronDown color={t.text} size={18} />
+                </View>
+              </Pressable>
+              <Pressable disabled={i === projects.length - 1} onPress={() => move(p.path, i + 1)} hitSlop={6} style={[s.orderBtn, i === projects.length - 1 && { opacity: 0.3 }]} accessibilityLabel={`Move ${p.name} down`}>
+                <ChevronDown color={t.text} size={18} />
+              </Pressable>
+            </View>
+          ))}
+        </ScrollView>
+        {order ? (
+          <Pressable onPress={() => setOrder(null)} style={({ pressed }) => [s.menuItem, pressed && { backgroundColor: t.hover }]}>
+            <Text style={[s.menuText, { color: t.muted }]}>Reset to Zed's order</Text>
+          </Pressable>
+        ) : null}
+        <Text style={s.menuMeta}>The order is kept on this phone, for this computer. New projects appear at the top.</Text>
+      </Sheet>
       <Sheet visible={picking} onClose={() => setPicking(false)} title="New thread in…">
         {recentProjects.map((p) => (
           <Pressable
@@ -382,6 +455,12 @@ function styles(t: Theme) {
     renameBtnText: { color: t.onAccent, fontSize: t.fs(15.5), fontFamily: ui, fontWeight: "600" },
     liveDot: { width: 7, height: 7, borderRadius: 6 },
     card: { marginHorizontal: 12, marginTop: 10, backgroundColor: t.surface, borderWidth: 1, borderColor: t.border, borderRadius: 18, overflow: "hidden" },
+    more: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 46, paddingLeft: 50, paddingRight: 16 },
+    moreText: { flex: 1, fontSize: t.fs(14.5), color: t.text, fontFamily: ui, fontWeight: "500" },
+    moreCount: { fontSize: t.fs(13), color: t.faint, fontFamily: ui },
+    orderRow: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 52, paddingLeft: 18, paddingRight: 12 },
+    orderName: { flex: 1, fontSize: t.fs(16), color: t.text, fontFamily: ui },
+    orderBtn: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: t.optionBg },
     pill: { flexDirection: "row", alignItems: "center", gap: 5, height: 24, paddingHorizontal: 9, borderRadius: 12 },
     pillText: { fontSize: t.fs(12.5), fontFamily: ui, fontWeight: "600" },
     cardSmall: { marginTop: 8, borderRadius: 14 },
