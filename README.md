@@ -1,66 +1,87 @@
-# afk — the phone app
+<p align="center">
+  <a href="https://goafk.dev">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="assets/brand/afk-logo-dark.svg">
+      <img alt="afk" src="assets/brand/afk-logo.svg" width="220">
+    </picture>
+  </a>
+</p>
 
-The afk app for Android (iPhone coming): Zed's agent panel on your phone. It talks to the
-**afk hub** running on your computer — install that first: [goafk/hub](https://github.com/goafk/hub)
-(`curl -fsSL https://goafk.dev/install.sh | sh`), then pair with the QR code it prints.
+<p align="center"><strong>Away from keyboard, not away from control.</strong></p>
 
-Website: [goafk.dev](https://goafk.dev) · Hub: [goafk/hub](https://github.com/goafk/hub)
+<p align="center">
+  The <strong>afk phone app</strong>: Zed's agent panel, in your pocket.
+  <br>
+  <a href="https://goafk.dev">Website</a> · <a href="https://goafk.dev/docs/">Docs</a> · <a href="https://github.com/goafk/hub">Hub (install this on your computer)</a>
+</p>
 
-Expo app that mirrors Zed's agent **Threads sidebar** and **thread view** from the afk hub on
-your Mac: the same projects in the same order, every thread with its agent icon and age, full
-transcripts (markdown, tables, tool calls, thinking), and the live composer with Zed's mode /
-model / effort dropdowns and Fast mode toggle, permission prompts, stop, and new threads.
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://goafk.dev/assets/shots/sidebar-dark-sm.webp">
+    <img alt="Your projects and threads" src="https://goafk.dev/assets/shots/sidebar-light-sm.webp" width="240">
+  </picture>
+  &nbsp;
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://goafk.dev/assets/shots/thread-live-dark-sm.webp">
+    <img alt="A live thread with a plan, a diff and queued messages" src="https://goafk.dev/assets/shots/thread-live-light-sm.webp" width="240">
+  </picture>
+  &nbsp;
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://goafk.dev/assets/shots/thread-permission-dark-sm.webp">
+    <img alt="Approving a command from the phone" src="https://goafk.dev/assets/shots/thread-permission-light-sm.webp" width="240">
+  </picture>
+</p>
 
-Phone: sidebar → tap a thread. Tablet / landscape / web: sidebar + thread side by side like Zed.
-Themes follow the system: Catppuccin Latte (light) and One Dark (dark), Fira Code for input.
+---
 
-## Features
+## What it does
 
-- Zed's sidebar and agent panel, Zed themes; full transcripts (markdown, tables, code with syntax
-  colors, diffs, mermaid, footnotes), tool calls with diffs/output, plans, thinking
-- **Every** Claude Agent / Codex thread is live; “Continue here” for threads not open in Zed
-- Composer: model / mode / effort / Fast mode, `/` commands (fuzzy), `@` files and folders,
-  photos & screenshots, quick replies, stop, context + cost meter
-- Agent questions (Zed's “Input Requested” card) and permission prompts; “approve everything” per thread
-- **Needs you** inbox with badge and unread dots; push notifications (installed app) — tap opens the thread
-- **Review changes** per project: diffs, commit (& push), push, discard picked files
-- Rename / archive (long-press or swipe), find in thread, history view
-- Android: share text / links / screenshots into a new or existing thread; home-screen widget
-- Fingerprint / Face ID lock; HTTPS over Tailscale
+Your AI coding agents keep working in [Zed](https://zed.dev) on your computer. The afk app keeps
+you in the loop while you're away from the keyboard:
 
-## Install the app (Android)
+- **See everything live:** the same projects and threads as Zed's sidebar, with plans, diffs, tool
+  calls and code rendered just like Zed.
+- **Never miss "needs you":** a notification when an agent wants permission, asks a question, or
+  finishes. Answer in a couple of taps.
+- **Steer from anywhere:** reply, queue the next message, use `/` commands and `@` files, attach a
+  photo, and switch model, mode or effort.
+- **Review and ship:** see what changed in each project, then commit and push.
+- **At a glance:** a "Needs you" inbox and home-screen widgets.
+- **Several computers:** pair personal and work, and switch between them at the top.
+- **Private:** your phone talks straight to your computer. Lock the app with your fingerprint.
 
-Install the APK from the latest EAS build (`npx eas-cli build:list`). On first launch it asks you
-to pair: run `afk setup` (or `afk pair`) on the Mac and scan the QR. Pair more Macs from the
-switcher at the top of the sidebar (*Add a Mac*). App updates without reinstalling:
-`npx eas-cli update --channel preview --environment preview -m "…"` (the app shows
-"Update ready · Restart").
+## Get the app
 
-## Run it in Expo Go / the browser (development)
+| | |
+| --- | --- |
+| **Android** | Coming soon to Google Play (and as a direct APK download) |
+| **iPhone** | Coming soon to the App Store |
 
-1. `cd app && npx expo start` (keep it running); `--web` for the browser, which talks to the hub
-   on this computer without pairing.
-2. In Expo Go, open *Add a Mac* → *Paste pairing link* with the link `afk pair` prints.
-   Scanning, share-to-thread, the widget and push need the installed app.
+Get notified when it lands in the stores at [goafk.dev](https://goafk.dev/#notify).
 
-You can also type an address and key by hand: gear icon in the sidebar.
+## Set it up
 
-## What's live and what's read-only
+1. **Install the hub on your computer:**
+   ```sh
+   curl -fsSL https://goafk.dev/install.sh | sh
+   ```
+2. **Open the app** and **scan the QR code** the installer shows.
 
-| Thread uses… | In the app |
-|---|---|
-| a “(synced)” agent, open in Zed | live: streaming, send, settings, permissions, stop |
-| a “(synced)” agent, not running | transcript; “open it in Zed to continue” |
-| a regular agent (Claude Agent, Codex, …) | transcript from the agent's own logs (Claude, Codex); read-only |
+To add another computer later, tap the computer's name at the top of the app, then **Add a Mac**.
 
-## Develop
+## Contributing
 
-```sh
-npx expo start --web     # browser at http://localhost:8081 (connects to http://localhost:47321)
-npx tsc --noEmit
-npx expo export --platform ios --platform android   # native bundle check
-```
+The app is built with Expo / React Native. How to run it, build it and ship updates is in
+[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
-Code: `src/app` routes (`index` sidebar/split, `thread/[id]`, `connect` pairing link),
-`src/components` (Sidebar, ThreadView, Entries, Markdown, Composer, Dialogs, Sheet, Icons),
-`src/lib` (api, sse, store, theme, time).
+## The afk repos
+
+| Repo | What |
+| --- | --- |
+| [goafk/hub](https://github.com/goafk/hub) | The hub that runs on your computer |
+| **[goafk/app](https://github.com/goafk/app)** | This repo: the phone app |
+| [goafk/website](https://github.com/goafk/website) | [goafk.dev](https://goafk.dev) |
+
+---
+
+<sub>MIT licensed. afk is an independent project, not affiliated with Zed Industries.</sub>
