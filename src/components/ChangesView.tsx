@@ -113,7 +113,7 @@ export function ChangesView({ cwd, onBack }: { cwd: string; onBack: () => void }
               <View style={s.fileWrap}>
                 <View style={s.file}>
                   <Pressable hitSlop={6} onPress={() => toggleFile(f.path)} style={[s.box, selected.has(f.path) && s.boxOn]}>
-                    {selected.has(f.path) ? <CheckIcon color="#fff" size={12} strokeWidth={2.6} /> : null}
+                    {selected.has(f.path) ? <CheckIcon color={t.onAccent} size={12} strokeWidth={2.6} /> : null}
                   </Pressable>
                   <Pressable onPress={() => toggleDiff(f)} style={s.fileMain}>
                     <Text style={[s.letter, { color: letterColor(f.status, t) }]}>{LETTER[f.status]}</Text>
@@ -138,7 +138,7 @@ export function ChangesView({ cwd, onBack }: { cwd: string; onBack: () => void }
               <TextInput value={message} onChangeText={setMessage} placeholder={`Commit message (${sel.length} file${sel.length === 1 ? "" : "s"}, +${totals.add} −${totals.rem})`} placeholderTextColor={t.faint} style={s.input} multiline />
               <View style={s.row}>
                 <Text style={s.small}>and push</Text>
-                <Switch value={andPush} onValueChange={setAndPush} trackColor={{ false: t.switchOff, true: t.accent }} />
+                <Switch value={andPush} onValueChange={setAndPush} trackColor={{ false: t.switchOff, true: t.accent }} thumbColor={andPush ? t.onAccent : "#FFFFFF"} />
                 <View style={{ flex: 1 }} />
                 <Pressable
                   // Discard only acts on files you picked yourself — never on the default "all".
@@ -160,13 +160,13 @@ export function ChangesView({ cwd, onBack }: { cwd: string; onBack: () => void }
                   }
                   style={[s.btn, s.primary, (!sel.length || !message.trim()) && { opacity: 0.5 }]}
                 >
-                  {busy === "commit" ? <ActivityIndicator size="small" color="#fff" /> : <Text style={[s.btnText, { color: "#fff" }]}>{andPush ? "Commit & push" : "Commit"}</Text>}
+                  {busy === "commit" ? <ActivityIndicator size="small" color={t.onAccent} /> : <Text style={[s.btnText, { color: t.onAccent }]}>{andPush ? "Commit & push" : "Commit"}</Text>}
                 </Pressable>
               </View>
             </>
           ) : st?.ahead ? (
             <Pressable disabled={!!busy} onPress={() => run("push", async () => { await api.gitPush(cwd); return "Pushed"; })} style={[s.btn, s.primary, { alignSelf: "stretch" }]}>
-              {busy === "push" ? <ActivityIndicator size="small" color="#fff" /> : <Text style={[s.btnText, { color: "#fff" }]}>Push {st.ahead} commit{st.ahead === 1 ? "" : "s"}</Text>}
+              {busy === "push" ? <ActivityIndicator size="small" color={t.onAccent} /> : <Text style={[s.btnText, { color: t.onAccent }]}>Push {st.ahead} commit{st.ahead === 1 ? "" : "s"}</Text>}
             </Pressable>
           ) : null}
         </View>
@@ -183,25 +183,25 @@ function styles(t: Theme) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: t.panel },
     header: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 14, minHeight: 56, borderBottomWidth: 1, borderBottomColor: t.border },
-    title: { fontSize: 17, color: t.text, fontFamily: ui },
-    sub: { fontSize: 13, color: t.muted, fontFamily: ui, marginTop: 1 },
-    link: { color: t.accent, fontSize: 14.5, fontFamily: ui },
+    title: { fontSize: t.fs(17), color: t.text, fontFamily: ui },
+    sub: { fontSize: t.fs(13), color: t.muted, fontFamily: ui, marginTop: 1 },
+    link: { color: t.accent, fontSize: t.fs(14.5), fontFamily: ui },
     fileWrap: { paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: t.border },
     file: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 50 },
     fileMain: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 8 },
-    box: { width: 20, height: 20, borderRadius: 4, borderWidth: 1, borderColor: t.borderStrong, alignItems: "center", justifyContent: "center", backgroundColor: t.surface },
+    box: { width: 20, height: 20, borderRadius: 6, borderWidth: 1, borderColor: t.borderStrong, alignItems: "center", justifyContent: "center", backgroundColor: t.surface },
     boxOn: { backgroundColor: t.accent, borderColor: t.accent },
-    letter: { width: 14, fontFamily: mono, fontSize: 13, fontWeight: "600" },
-    name: { fontSize: 15, color: t.text, fontFamily: ui },
-    dir: { fontSize: 12.5, color: t.faint, fontFamily: ui },
-    stat: { fontFamily: mono, fontSize: 12 },
-    note: { color: t.muted, fontSize: 13.5, fontFamily: ui, paddingHorizontal: 16, paddingVertical: 8 },
+    letter: { width: 14, fontFamily: t.mono, fontSize: t.fs(13), fontWeight: "600" },
+    name: { fontSize: t.fs(15), color: t.text, fontFamily: ui },
+    dir: { fontSize: t.fs(12.5), color: t.faint, fontFamily: ui },
+    stat: { fontFamily: t.mono, fontSize: t.fs(12) },
+    note: { color: t.muted, fontSize: t.fs(13.5), fontFamily: ui, paddingHorizontal: 16, paddingVertical: 8 },
     footer: { borderTopWidth: 1, borderTopColor: t.border, backgroundColor: t.surface, paddingHorizontal: 14, paddingTop: 12, gap: 10 },
-    input: { minHeight: 44, maxHeight: 120, borderWidth: 1, borderColor: t.borderStrong, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, color: t.text, fontFamily: mono, outlineStyle: "none" } as any,
+    input: { minHeight: 44, maxHeight: 120, borderWidth: 1, borderColor: t.borderStrong, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: t.fs(15), color: t.text, fontFamily: t.mono, outlineStyle: "none" } as any,
     row: { flexDirection: "row", alignItems: "center", gap: 8 },
-    small: { fontSize: 13.5, color: t.muted, fontFamily: ui },
-    btn: { height: 38, paddingHorizontal: 14, borderRadius: 7, borderWidth: 1, borderColor: t.borderStrong, alignItems: "center", justifyContent: "center" },
+    small: { fontSize: t.fs(13.5), color: t.muted, fontFamily: ui },
+    btn: { height: 38, paddingHorizontal: 14, borderRadius: 8, borderWidth: 1, borderColor: t.borderStrong, alignItems: "center", justifyContent: "center" },
     primary: { backgroundColor: t.accent, borderColor: t.accent },
-    btnText: { fontSize: 14.5, fontFamily: ui, fontWeight: "600", color: t.text },
+    btnText: { fontSize: t.fs(14.5), fontFamily: ui, fontWeight: "600", color: t.text },
   });
 }

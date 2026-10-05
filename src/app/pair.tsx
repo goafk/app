@@ -68,7 +68,7 @@ export default function Pair() {
       {state.step === "error" ? (
         <View style={st.row}>
           <Pressable onPress={() => router.replace("/scan")} style={[st.btn, { backgroundColor: t.accent }]}>
-            <Text style={st.btnText}>Scan again</Text>
+            <Text style={[st.btnText, { color: t.onAccent }]}>Scan again</Text>
           </Pressable>
           <Pressable onPress={() => router.replace("/")} style={[st.btn, { backgroundColor: t.hover }]}>
             <Text style={[st.btnText, { color: t.text }]}>Close</Text>
@@ -84,6 +84,6 @@ const st = StyleSheet.create({
   big: { fontSize: 36, fontWeight: "700" },
   text: { fontSize: 17, lineHeight: 24, fontFamily: ui, textAlign: "center" },
   row: { flexDirection: "row", gap: 12, marginTop: 8 },
-  btn: { minHeight: 44, paddingHorizontal: 22, borderRadius: 10, alignItems: "center", justifyContent: "center" },
-  btnText: { color: "#fff", fontSize: 16, fontFamily: ui, fontWeight: "600" },
+  btn: { minHeight: 44, paddingHorizontal: 22, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  btnText: { fontSize: 16, fontFamily: ui, fontWeight: "600" },
 });

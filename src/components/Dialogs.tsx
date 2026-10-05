@@ -5,9 +5,10 @@ import type { Agent, SidebarThread } from "../lib/api";
 import { makeApi } from "../lib/api";
 import { loadPushPrefs, useStore } from "../lib/store";
 import type { PushPrefs } from "../lib/store";
-import { mono, ui, useTheme } from "../lib/theme";
+import { ui, useAppearance, useTheme } from "../lib/theme";
 import type { Theme } from "../lib/theme";
-import { AgentIcon, CheckIcon } from "./Icons";
+import { AgentIcon, CheckIcon, ChevronRight } from "./Icons";
+import { AppearanceSettings } from "./AppearanceSettings";
 import { LOCK_AFTER_OPTIONS, useLock } from "./LockGate";
 import { useUpdates } from "../lib/updates";
 import { Sheet } from "./Sheet";
@@ -74,7 +75,7 @@ export function NewThreadSheet({ cwd, onClose, onCreated }: { cwd: string | null
       {err ? <Text style={s.err}>{err}</Text> : null}
       <Text style={s.hint}>Zed opens the project and starts the thread on your Mac.</Text>
       <Pressable onPress={start} disabled={busy || !agentId} style={[s.primary, (busy || !agentId) && { opacity: 0.5 }]}>
-        {busy ? <ActivityIndicator color="#fff" size="small" /> : <Text style={s.primaryText}>Start thread</Text>}
+        {busy ? <ActivityIndicator color={t.onAccent} size="small" /> : <Text style={s.primaryText}>Start thread</Text>}
       </Pressable>
     </Sheet>
   );
@@ -86,6 +87,8 @@ export function SettingsSheet({ visible, onClose }: { visible: boolean; onClose:
   const { conn, setConn, push, setPushPrefs } = useStore();
   const lock = useLock();
   const updates = useUpdates();
+  const { appearance } = useAppearance();
+  const [page, setPage] = useState<"main" | "appearance">("main");
   const [prefs, setPrefs] = useState<PushPrefs>({ finished: true, input: true });
   useEffect(() => {
     loadPushPrefs().then(setPrefs);
@@ -104,6 +107,7 @@ export function SettingsSheet({ visible, onClose }: { visible: boolean; onClose:
       setUrl(conn.url);
       setToken(conn.token);
       setState(null);
+      setPage("main");
     }
   }, [visible, conn]);
 
@@ -122,7 +126,17 @@ export function SettingsSheet({ visible, onClose }: { visible: boolean; onClose:
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Hub connection">
+    <Sheet visible={visible} onClose={onClose} title={page === "appearance" ? "Appearance" : "Settings"}>
+      {page === "appearance" ? (
+        <AppearanceSettings onBack={() => setPage("main")} />
+      ) : (
+      <>
+      <Pressable onPress={() => setPage("appearance")} style={({ pressed }) => [s.navRow, pressed && { backgroundColor: t.hover }]} accessibilityRole="button">
+        <Text style={s.rowText}>Appearance</Text>
+        <Text style={s.navValue} numberOfLines={1}>{appearanceSummary(appearance.theme, t.name)}</Text>
+        <ChevronRight color={t.faint} size={16} />
+      </Pressable>
+      <Text style={[s.label, { paddingHorizontal: 18, marginTop: 6, marginBottom: 8 }]}>Hub connection</Text>
       <View style={{ paddingHorizontal: 18, gap: 10 }}>
         <Text style={s.label}>Hub address</Text>
         <TextInput value={url} onChangeText={setUrl} placeholder="192.168.1.20:47321 or https://<mac>.<tailnet>.ts.net:8443" placeholderTextColor={t.faint} autoCapitalize="none" autoCorrect={false} style={s.field} />
@@ -140,7 +154,7 @@ export function SettingsSheet({ visible, onClose }: { visible: boolean; onClose:
       {(["input", "finished"] as const).map((k) => (
         <View key={k} style={s.prefRow}>
           <Text style={s.rowText}>{k === "input" ? "When a thread needs your input" : "When a thread finishes"}</Text>
-          <Switch value={prefs[k]} onValueChange={() => togglePref(k)} trackColor={{ false: t.switchOff, true: t.accent }} />
+          <Switch value={prefs[k]} onValueChange={() => togglePref(k)} trackColor={{ false: t.switchOff, true: t.accent }} thumbColor={prefs[k] ? t.onAccent : "#FFFFFF"} />
         </View>
       ))}
       {lock.supported ? (
@@ -148,7 +162,7 @@ export function SettingsSheet({ visible, onClose }: { visible: boolean; onClose:
           <Text style={[s.label, { paddingHorizontal: 18, marginTop: 8 }]}>Security</Text>
           <View style={s.prefRow}>
             <Text style={s.rowText}>Require fingerprint / Face ID</Text>
-            <Switch value={lock.enabled} onValueChange={(v) => lock.setEnabled(v)} trackColor={{ false: t.switchOff, true: t.accent }} />
+            <Switch value={lock.enabled} onValueChange={(v) => lock.setEnabled(v)} trackColor={{ false: t.switchOff, true: t.accent }} thumbColor={lock.enabled ? t.onAccent : "#FFFFFF"} />
           </View>
           {lock.enabled ? (
             <>
@@ -162,7 +176,7 @@ export function SettingsSheet({ visible, onClose }: { visible: boolean; onClose:
                       onPress={() => lock.setAfter(o.ms)}
                       style={[s.chip, { backgroundColor: on ? t.accent : "transparent", borderColor: on ? t.accent : t.borderStrong }]}
                     >
-                      <Text style={[s.chipText, { color: on ? "#fff" : t.text }]}>{o.label}</Text>
+                      <Text style={[s.chipText, { color: on ? t.onAccent : t.text }]}>{o.label}</Text>
                     </Pressable>
                   );
                 })}
@@ -192,27 +206,35 @@ export function SettingsSheet({ visible, onClose }: { visible: boolean; onClose:
       <Text style={[s.hint2, { paddingHorizontal: 18, paddingBottom: 8, color: push?.status === "registered" ? t.success : t.faint }]}>
         {push?.status === "registered" ? "This phone is registered for notifications." : push?.detail ?? "Checking…"}
       </Text>
+      </>
+      )}
     </Sheet>
   );
 }
 
+function appearanceSummary(theme: string, active: string): string {
+  return theme === "zed" ? `Match Zed · ${active}` : active;
+}
+
 function styles(t: Theme) {
   return StyleSheet.create({
+    navRow: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 52, paddingHorizontal: 18, marginBottom: 4 },
+    navValue: { color: t.faint, fontSize: t.fs(14), fontFamily: ui, maxWidth: 190 },
     row: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 18, paddingVertical: 12 },
     linkBtn: { minHeight: 44, justifyContent: "center", paddingLeft: 12 },
     chips: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: 18, paddingTop: 8, paddingBottom: 6 },
     chip: { minHeight: 44, paddingHorizontal: 14, borderRadius: 22, borderWidth: 1, alignItems: "center", justifyContent: "center" },
-    chipText: { fontSize: 14.5, fontFamily: ui, fontWeight: "500" },
-    rowText: { flex: 1, fontSize: 16, color: t.text, fontFamily: ui },
-    box: { marginHorizontal: 18, marginTop: 8, borderWidth: 1, borderColor: t.borderStrong, borderRadius: 8, padding: 12 },
-    input: { minHeight: 70, fontFamily: mono, fontSize: 14.5, color: t.text, outlineStyle: "none" } as any,
-    err: { color: t.error, fontSize: 13.5, fontFamily: ui, paddingHorizontal: 18, paddingTop: 8 },
-    hint: { color: t.faint, fontSize: 13, fontFamily: ui, paddingHorizontal: 18, paddingTop: 8 },
-    hint2: { color: t.faint, fontSize: 13, lineHeight: 18, fontFamily: ui },
-    primary: { margin: 18, marginTop: 14, height: 44, borderRadius: 8, backgroundColor: t.accent, alignItems: "center", justifyContent: "center" },
-    primaryText: { color: "#fff", fontSize: 16, fontFamily: ui, fontWeight: "600" },
+    chipText: { fontSize: t.fs(14.5), fontFamily: ui, fontWeight: "500" },
+    rowText: { flex: 1, fontSize: t.fs(16), color: t.text, fontFamily: ui },
+    box: { marginHorizontal: 18, marginTop: 8, borderWidth: 1, borderColor: t.borderStrong, borderRadius: 10, padding: 12 },
+    input: { minHeight: 70, fontFamily: t.mono, fontSize: t.fs(14.5), color: t.text, outlineStyle: "none" } as any,
+    err: { color: t.error, fontSize: t.fs(13.5), fontFamily: ui, paddingHorizontal: 18, paddingTop: 8 },
+    hint: { color: t.faint, fontSize: t.fs(13), fontFamily: ui, paddingHorizontal: 18, paddingTop: 8 },
+    hint2: { color: t.faint, fontSize: t.fs(13), lineHeight: t.fs(18), fontFamily: ui },
+    primary: { margin: 18, marginTop: 14, height: 44, borderRadius: 10, backgroundColor: t.accent, alignItems: "center", justifyContent: "center" },
+    primaryText: { color: t.onAccent, fontSize: t.fs(16), fontFamily: ui, fontWeight: "600" },
     prefRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 18, paddingVertical: 8 },
-    label: { color: t.muted, fontSize: 13, fontFamily: ui },
-    field: { borderWidth: 1, borderColor: t.borderStrong, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, color: t.text, fontFamily: mono, outlineStyle: "none" } as any,
+    label: { color: t.muted, fontSize: t.fs(13), fontFamily: ui },
+    field: { borderWidth: 1, borderColor: t.borderStrong, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: t.fs(15), color: t.text, fontFamily: t.mono, outlineStyle: "none" } as any,
   });
 }

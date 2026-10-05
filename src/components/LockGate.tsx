@@ -118,7 +118,7 @@ export function LockGate({ children }: { children: React.ReactNode }) {
           <Text style={[st.title, { color: t.text }]}>afk is locked</Text>
           {err ? <Text style={[st.err, { color: t.error }]}>{err}</Text> : null}
           <Pressable onPress={unlock} style={[st.btn, { backgroundColor: t.accent }]}>
-            <Text style={st.btnText}>Unlock</Text>
+            <Text style={[st.btnText, { color: t.onAccent }]}>Unlock</Text>
           </Pressable>
         </View>
       ) : null}
@@ -130,6 +130,6 @@ const st = StyleSheet.create({
   cover: { alignItems: "center", justifyContent: "center", gap: 16, zIndex: 1000 },
   title: { fontSize: 18, fontFamily: ui },
   err: { fontSize: 14, fontFamily: ui },
-  btn: { paddingHorizontal: 28, height: 44, borderRadius: 8, alignItems: "center", justifyContent: "center" },
-  btnText: { color: "#fff", fontSize: 16, fontFamily: ui, fontWeight: "600" },
+  btn: { paddingHorizontal: 28, height: 44, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  btnText: { fontSize: 16, fontFamily: ui, fontWeight: "600" },
 });

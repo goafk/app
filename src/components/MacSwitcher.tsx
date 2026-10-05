@@ -68,7 +68,7 @@ export function MacSwitcher() {
                   }}
                   style={[s.smallBtn, { backgroundColor: t.accent }]}
                 >
-                  <Text style={[s.smallBtnText, { color: "#fff" }]}>Save</Text>
+                  <Text style={[s.smallBtnText, { color: t.onAccent }]}>Save</Text>
                 </Pressable>
               </View>
             );
@@ -131,17 +131,17 @@ export function MacSwitcher() {
 function styles(t: Theme) {
   return StyleSheet.create({
     bar: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16, minHeight: 46, borderBottomWidth: 1, borderBottomColor: t.border },
-    name: { flexShrink: 1, fontSize: 16, color: t.text, fontFamily: ui, fontWeight: "600" },
-    badge: { marginLeft: "auto", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 },
-    badgeText: { color: "#fff", fontSize: 12, fontFamily: ui, fontWeight: "600" },
+    name: { flexShrink: 1, fontSize: t.fs(16), color: t.text, fontFamily: ui, fontWeight: "600" },
+    badge: { marginLeft: "auto", borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 },
+    badgeText: { color: t.onAccent, fontSize: t.fs(12), fontFamily: ui, fontWeight: "600" },
     row: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 18, minHeight: 60 },
-    dot: { width: 9, height: 9, borderRadius: 5 },
-    rowName: { fontSize: 16, color: t.text, fontFamily: ui },
-    rowSub: { fontSize: 13, color: t.faint, fontFamily: ui, marginTop: 2 },
+    dot: { width: 9, height: 9, borderRadius: 6 },
+    rowName: { fontSize: t.fs(16), color: t.text, fontFamily: ui },
+    rowSub: { fontSize: t.fs(13), color: t.faint, fontFamily: ui, marginTop: 2 },
     icon: { width: 40, height: 44, alignItems: "center", justifyContent: "center" },
-    input: { flex: 1, fontSize: 16, color: t.text, fontFamily: ui, borderBottomWidth: 1, borderBottomColor: t.accent, paddingVertical: 8, outlineStyle: "none" } as any,
-    smallBtn: { minHeight: 36, paddingHorizontal: 14, borderRadius: 8, alignItems: "center", justifyContent: "center" },
-    smallBtnText: { fontSize: 14.5, fontFamily: ui, fontWeight: "600" },
-    foot: { fontSize: 13, color: t.faint, fontFamily: ui, paddingHorizontal: 18, paddingTop: 10, paddingBottom: 6 },
+    input: { flex: 1, fontSize: t.fs(16), color: t.text, fontFamily: ui, borderBottomWidth: 1, borderBottomColor: t.accent, paddingVertical: 8, outlineStyle: "none" } as any,
+    smallBtn: { minHeight: 36, paddingHorizontal: 14, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+    smallBtnText: { fontSize: t.fs(14.5), fontFamily: ui, fontWeight: "600" },
+    foot: { fontSize: t.fs(13), color: t.faint, fontFamily: ui, paddingHorizontal: 18, paddingTop: 10, paddingBottom: 6 },
   });
 }

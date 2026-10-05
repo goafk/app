@@ -64,7 +64,7 @@ export function QueuePanel({ items, onRemove, onEdit, onSendNow, onClear }: Prop
                   onPress={() => run(`edit:${q.id}`, () => onEdit(q.id, editing.text.trim()).then(() => setEditing(null)))}
                   style={[s.sendNow, { backgroundColor: t.accent }]}
                 >
-                  {busy === `edit:${q.id}` ? <ActivityIndicator size="small" color="#fff" /> : <Text style={[s.sendNowText, { color: "#fff" }]}>Save</Text>}
+                  {busy === `edit:${q.id}` ? <ActivityIndicator size="small" color={t.onAccent} /> : <Text style={[s.sendNowText, { color: t.onAccent }]}>Save</Text>}
                 </Pressable>
               </View>
             ) : (
@@ -93,18 +93,18 @@ export function QueuePanel({ items, onRemove, onEdit, onSendNow, onClear }: Prop
 
 function styles(t: Theme) {
   return StyleSheet.create({
-    root: { marginHorizontal: 10, marginBottom: 8, borderRadius: 10, borderWidth: 1, borderColor: t.borderStrong, backgroundColor: t.surface, overflow: "hidden" },
+    root: { marginHorizontal: 10, marginBottom: 8, borderRadius: 12, borderWidth: 1, borderColor: t.borderStrong, backgroundColor: t.surface, overflow: "hidden" },
     head: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingLeft: 12, paddingRight: 6, minHeight: 44, borderBottomWidth: 1, borderBottomColor: t.border },
     headLeft: { flexDirection: "row", alignItems: "center", gap: 8, flex: 1, minHeight: 44 },
-    title: { fontSize: 15, color: t.text, fontFamily: ui, fontWeight: "500" },
+    title: { fontSize: t.fs(15), color: t.text, fontFamily: ui, fontWeight: "500" },
     textBtn: { minHeight: 44, minWidth: 44, paddingHorizontal: 10, alignItems: "center", justifyContent: "center" },
-    textBtnLabel: { fontSize: 14, color: t.text, fontFamily: ui },
+    textBtnLabel: { fontSize: t.fs(14), color: t.text, fontFamily: ui },
     row: { flexDirection: "row", alignItems: "center", gap: 6, paddingLeft: 12, paddingRight: 6, minHeight: 52, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
     dot: { width: 8, height: 8, borderRadius: 4 },
-    text: { flex: 1, fontSize: 14.5, color: t.text, fontFamily: mono, marginLeft: 4 },
+    text: { flex: 1, fontSize: t.fs(14.5), color: t.text, fontFamily: t.mono, marginLeft: 4 },
     icon: { width: 40, height: 44, alignItems: "center", justifyContent: "center" },
-    sendNow: { minHeight: 36, paddingHorizontal: 12, borderRadius: 7, backgroundColor: t.hover, alignItems: "center", justifyContent: "center" },
-    sendNowText: { fontSize: 14, color: t.text, fontFamily: ui, fontWeight: "500" },
-    input: { flex: 1, fontSize: 14.5, color: t.text, fontFamily: mono, paddingVertical: 8, outlineStyle: "none" } as any,
+    sendNow: { minHeight: 36, paddingHorizontal: 12, borderRadius: 8, backgroundColor: t.hover, alignItems: "center", justifyContent: "center" },
+    sendNowText: { fontSize: t.fs(14), color: t.text, fontFamily: ui, fontWeight: "500" },
+    input: { flex: 1, fontSize: t.fs(14.5), color: t.text, fontFamily: t.mono, paddingVertical: t.sp(8), outlineStyle: "none" } as any,
   });
 }

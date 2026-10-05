@@ -2,6 +2,7 @@
 import React, { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { mono, ui, useTheme } from "../lib/theme";
+import type { Theme } from "../lib/theme";
 
 type Line = { kind: " " | "+" | "-"; text: string };
 
@@ -45,12 +46,13 @@ function hunks(lines: Line[], ctx = 2): Array<Line | { gap: number }> {
 
 export function DiffView({ path, oldText, newText }: { path?: string; oldText?: string | null; newText?: string }) {
   const t = useTheme();
+  const st = sheet(t);
   const [all, setAll] = useState(false);
   const rows = useMemo(() => hunks(diffLines(oldText ?? "", newText ?? "")), [oldText, newText]);
   const added = rows.filter((r) => "kind" in r && r.kind === "+").length;
   const removed = rows.filter((r) => "kind" in r && r.kind === "-").length;
   const shown = all ? rows : rows.slice(0, 40);
-  const bg = { "+": t.dark ? "rgba(152,195,121,0.14)" : "rgba(64,160,43,0.12)", "-": t.dark ? "rgba(224,108,117,0.14)" : "rgba(210,15,57,0.10)", " ": "transparent" };
+  const bg = { "+": t.diffAdd, "-": t.diffDel, " ": "transparent" };
   return (
     <View style={[st.box, { borderColor: t.border }]}>
       <View style={[st.head, { borderBottomColor: t.border }]}>
@@ -81,12 +83,22 @@ export function DiffView({ path, oldText, newText }: { path?: string; oldText?: 
   );
 }
 
-const st = StyleSheet.create({
-  box: { borderWidth: 1, borderRadius: 6, overflow: "hidden", marginTop: 6 },
+function make(t: Theme) {
+  return StyleSheet.create({
+  box: { borderWidth: 1, borderRadius: 8, overflow: "hidden", marginTop: 6 },
   head: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 10, paddingVertical: 6, borderBottomWidth: 1 },
-  path: { flex: 1, fontFamily: mono, fontSize: 12.5 },
-  stat: { fontFamily: mono, fontSize: 12 },
-  line: { fontFamily: mono, fontSize: 12, lineHeight: 18, paddingHorizontal: 10 },
-  gap: { fontFamily: ui, fontSize: 12, paddingHorizontal: 10, paddingVertical: 3 },
+  path: { flex: 1, fontFamily: t.mono, fontSize: t.fs(12.5) },
+  stat: { fontFamily: t.mono, fontSize: t.fs(12) },
+  line: { fontFamily: t.mono, fontSize: t.fs(12), lineHeight: t.fs(18), paddingHorizontal: 10 },
+  gap: { fontFamily: ui, fontSize: t.fs(12), paddingHorizontal: 10, paddingVertical: 3 },
   more: { padding: 8, alignItems: "center" },
-});
+  });
+}
+const sheets = new WeakMap<Theme, ReturnType<typeof make>>();
+/** Styles for a theme, built once per theme (rows render many times). */
+function sheet(t: Theme) {
+  let s = sheets.get(t);
+  if (!s) sheets.set(t, (s = make(t)));
+  return s;
+}
+

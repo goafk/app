@@ -1,3 +1,4 @@
+import type { ZedThemeInfo } from "./theme";
 // Client for the afk hub HTTP API.
 import { Platform } from "react-native";
 import { activeConn } from "./hosts";
@@ -113,6 +114,7 @@ export function makeApi(conn: Conn) {
     base,
     token: conn.token,
     sidebar: () => call<{ projects: Project[] }>("GET", "/zed/sidebar"),
+    zedTheme: () => call<ZedThemeInfo>("GET", "/zed/theme"),
     gitStatus: (cwd: string) => call<GitStatus>("GET", `/git/status?cwd=${encodeURIComponent(cwd)}`),
     gitDiff: (cwd: string, file: string) => call<{ diff: string }>("GET", `/git/diff?cwd=${encodeURIComponent(cwd)}&file=${encodeURIComponent(file)}`),
     gitCommit: (cwd: string, message: string, files?: string[]) => call<{ hash: string }>("POST", "/git/commit", { cwd, message, files }),

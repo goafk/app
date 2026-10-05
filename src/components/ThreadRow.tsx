@@ -7,6 +7,7 @@ import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSw
 import type { SidebarThread } from "../lib/api";
 import { age } from "../lib/time";
 import { ui } from "../lib/theme";
+import { readableOn } from "../lib/themes";
 import type { Theme } from "../lib/theme";
 import { AgentIcon, WarningIcon } from "./Icons";
 
@@ -24,6 +25,7 @@ type Props = {
 
 export function ThreadRow({ th, t, selected, subtitle, preview, now, onOpen, onMenu, onArchive }: Props) {
   const ref = useRef<SwipeableMethods>(null);
+  const st = sheet(t);
   const waiting = th.status === "needs_permission";
   const row = (
     <Pressable
@@ -70,7 +72,7 @@ export function ThreadRow({ th, t, selected, subtitle, preview, now, onOpen, onM
           }}
           style={[st.action, { backgroundColor: th.archived ? t.success : t.borderStrong }]}
         >
-          <Text style={st.actionText}>{th.archived ? "Unarchive" : "Archive"}</Text>
+          <Text style={[st.actionText, { color: readableOn(th.archived ? t.success : t.borderStrong) }]}>{th.archived ? "Unarchive" : "Archive"}</Text>
         </Pressable>
       )}
     >
@@ -79,14 +81,24 @@ export function ThreadRow({ th, t, selected, subtitle, preview, now, onOpen, onM
   );
 }
 
-const st = StyleSheet.create({
-  thread: { paddingLeft: 14, paddingRight: 14, paddingVertical: 9 },
+function make(t: Theme) {
+  return StyleSheet.create({
+  thread: { paddingLeft: 14, paddingRight: 14, paddingVertical: t.sp(9) },
   line: { flexDirection: "row", alignItems: "center" },
   icon: { width: 26, height: 22, alignItems: "flex-start", justifyContent: "center" },
-  title: { flex: 1, fontSize: 16, fontFamily: ui },
+  title: { flex: 1, fontSize: t.fs(16), fontFamily: ui },
   dot: { width: 8, height: 8, borderRadius: 4, marginLeft: 8 },
-  preview: { marginLeft: 26, marginTop: 3, fontSize: 14, lineHeight: 19, fontFamily: ui },
-  age: { marginLeft: 26, marginTop: 2, fontSize: 14, fontFamily: ui },
+  preview: { marginLeft: 26, marginTop: 3, fontSize: t.fs(14), lineHeight: t.fs(19), fontFamily: ui },
+  age: { marginLeft: 26, marginTop: 2, fontSize: t.fs(14), fontFamily: ui },
   action: { width: 104, alignItems: "center", justifyContent: "center" },
-  actionText: { color: "#fff", fontSize: 15, fontFamily: ui, fontWeight: "600" },
-});
+  actionText: { fontSize: t.fs(15), fontFamily: ui, fontWeight: "600" },
+  });
+}
+const sheets = new WeakMap<Theme, ReturnType<typeof make>>();
+/** Styles for a theme, built once per theme (rows render many times). */
+function sheet(t: Theme) {
+  let s = sheets.get(t);
+  if (!s) sheets.set(t, (s = make(t)));
+  return s;
+}
+

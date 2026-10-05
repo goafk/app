@@ -65,7 +65,7 @@ export function QuestionCard({ pending, agentName, onAnswer }: Props) {
   return (
     <View style={s.card}>
       <View style={s.head}>
-        <InfoIcon color={t.dark ? "#56B6C2" : "#179299"} size={16} />
+        <InfoIcon color={t.info} size={16} />
         <Text style={s.headTitle} numberOfLines={1}>Input Requested by {agentName ?? "agent"}</Text>
         <Text style={s.headState}>Waiting for input</Text>
       </View>
@@ -92,7 +92,7 @@ export function QuestionCard({ pending, agentName, onAnswer }: Props) {
                   return (
                     <Pressable key={o.value} onPress={toggle} style={({ pressed }) => [s.option, (on || pressed) && s.optionOn]}>
                       <View style={[f.kind === "multi" ? s.box : s.radio, on && s.markOn]}>
-                        {on ? f.kind === "multi" ? <CheckIcon color="#fff" size={12} strokeWidth={2.6} /> : <View style={s.dot} /> : null}
+                        {on ? f.kind === "multi" ? <CheckIcon color={t.onAccent} size={12} strokeWidth={2.6} /> : <View style={s.dot} /> : null}
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={s.optLabel}>{o.label}</Text>
@@ -102,7 +102,7 @@ export function QuestionCard({ pending, agentName, onAnswer }: Props) {
                   );
                 })
               ) : f.kind === "bool" ? (
-                <Switch value={!!values[f.key]} onValueChange={(v) => set(f.key, v)} trackColor={{ false: t.switchOff, true: t.accent }} />
+                <Switch value={!!values[f.key]} onValueChange={(v) => set(f.key, v)} trackColor={{ false: t.switchOff, true: t.accent }} thumbColor={!!values[f.key] ? t.onAccent : "#FFFFFF"} />
               ) : (
                 <TextInput
                   value={values[f.key] ?? ""}
@@ -159,30 +159,30 @@ export function AskedSummary({ questions, answer }: { questions: any[]; answer?:
 type St = ReturnType<typeof styles>;
 
 function styles(t: Theme) {
-  const optBg = t.dark ? "#2F343E" : "#EEF0F4";
+  const optBg = t.optionBg;
   return StyleSheet.create({
-    card: { borderWidth: 1, borderColor: t.border, borderRadius: 8, backgroundColor: t.panel, marginVertical: 8, overflow: "hidden" },
-    head: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: t.dark ? "#2C313A" : "#DCE0E8" },
-    headTitle: { flex: 1, fontSize: 15, color: t.text, fontFamily: ui },
-    headState: { fontSize: 14, color: t.muted, fontFamily: ui },
+    card: { borderWidth: 1, borderColor: t.border, borderRadius: 10, backgroundColor: t.panel, marginVertical: 8, overflow: "hidden" },
+    head: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: t.tableHead },
+    headTitle: { flex: 1, fontSize: t.fs(15), color: t.text, fontFamily: ui },
+    headState: { fontSize: t.fs(14), color: t.muted, fontFamily: ui },
     body: { paddingHorizontal: 14, paddingVertical: 12 },
-    message: { fontSize: 15, lineHeight: 22, color: t.text, fontFamily: ui, marginBottom: 4 },
+    message: { fontSize: t.fs(15), lineHeight: t.fs(22), color: t.text, fontFamily: ui, marginBottom: 4 },
     field: { marginTop: 12 },
-    title: { fontSize: 15, color: t.text, fontFamily: ui, marginBottom: 4 },
-    desc: { fontSize: 15, lineHeight: 22, color: t.muted, fontFamily: ui, marginBottom: 8 },
-    option: { flexDirection: "row", alignItems: "flex-start", gap: 12, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 6, borderWidth: 1, borderColor: t.border, backgroundColor: optBg, marginBottom: 8 },
+    title: { fontSize: t.fs(15), color: t.text, fontFamily: ui, marginBottom: 4 },
+    desc: { fontSize: t.fs(15), lineHeight: t.fs(22), color: t.muted, fontFamily: ui, marginBottom: 8 },
+    option: { flexDirection: "row", alignItems: "flex-start", gap: 12, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: t.border, backgroundColor: optBg, marginBottom: 8 },
     optionOn: { backgroundColor: t.selected },
     radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 1, borderColor: t.borderStrong, backgroundColor: t.surface, alignItems: "center", justifyContent: "center", marginTop: 1 },
-    box: { width: 20, height: 20, borderRadius: 4, borderWidth: 1, borderColor: t.borderStrong, backgroundColor: t.surface, alignItems: "center", justifyContent: "center", marginTop: 1 },
+    box: { width: 20, height: 20, borderRadius: 6, borderWidth: 1, borderColor: t.borderStrong, backgroundColor: t.surface, alignItems: "center", justifyContent: "center", marginTop: 1 },
     markOn: { borderColor: t.accent, backgroundColor: t.accent },
-    dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#fff" },
-    optLabel: { fontSize: 15, color: t.text, fontFamily: ui },
-    optDesc: { fontSize: 14.5, lineHeight: 21, color: t.muted, fontFamily: ui, marginTop: 4 },
-    input: { borderWidth: 1, borderColor: t.border, borderRadius: 6, backgroundColor: t.surface, paddingHorizontal: 10, paddingVertical: 9, minHeight: 44, fontSize: 15, color: t.text, fontFamily: ui, outlineStyle: "none" } as any,
-    err: { color: t.error, fontSize: 13, fontFamily: ui, marginTop: 8 },
+    dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: t.onAccent },
+    optLabel: { fontSize: t.fs(15), color: t.text, fontFamily: ui },
+    optDesc: { fontSize: t.fs(14.5), lineHeight: t.fs(21), color: t.muted, fontFamily: ui, marginTop: 4 },
+    input: { borderWidth: 1, borderColor: t.border, borderRadius: 8, backgroundColor: t.surface, paddingHorizontal: 10, paddingVertical: 9, minHeight: 44, fontSize: t.fs(15), color: t.text, fontFamily: ui, outlineStyle: "none" } as any,
+    err: { color: t.error, fontSize: t.fs(13), fontFamily: ui, marginTop: 8 },
     footer: { flexDirection: "row", justifyContent: "flex-end", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 6, borderTopWidth: 1, borderTopColor: t.border },
-    fbtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 8, paddingVertical: 6, borderRadius: 5 },
-    fbtnText: { fontSize: 15, color: t.text, fontFamily: ui },
-    answer: { marginTop: 10, fontSize: 14.5, lineHeight: 21, color: t.text, fontFamily: ui },
+    fbtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6 },
+    fbtnText: { fontSize: t.fs(15), color: t.text, fontFamily: ui },
+    answer: { marginTop: 10, fontSize: t.fs(14.5), lineHeight: t.fs(21), color: t.text, fontFamily: ui },
   });
 }

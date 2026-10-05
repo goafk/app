@@ -1,5 +1,6 @@
 // One thread: Zed-style header, live transcript, permission prompt, and composer.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { readableOn } from "../lib/themes";
 import { ActivityIndicator, FlatList, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Entry, PendingElicitation, ThreadDetail } from "../lib/api";
@@ -318,7 +319,7 @@ export function ThreadView({ id, onBack, onNewThread, onToggleWide, onReviewChan
                     {permBusy === `${p.requestId}:${o.optionId}` ? (
                       <ActivityIndicator size="small" color={allow ? "#fff" : t.faint} />
                     ) : (
-                      <Text style={[s.permBtnText, allow && { color: "#fff" }]}>{o.name}</Text>
+                      <Text style={[s.permBtnText, allow && { color: t.onAccent }]}>{o.name}</Text>
                     )}
                   </Pressable>
                 );
@@ -379,7 +380,7 @@ export function ThreadView({ id, onBack, onNewThread, onToggleWide, onReviewChan
               {resumeErr ? <Text style={[s.noticeText, { color: t.error }]}>{resumeErr}</Text> : null}
               {thread.synced ? (
                 <Pressable onPress={resume} disabled={resuming} style={[s.resumeBtn, resuming && { opacity: 0.6 }]}>
-                  {resuming ? <ActivityIndicator size="small" color="#fff" /> : <Text style={s.resumeText}>Continue here</Text>}
+                  {resuming ? <ActivityIndicator size="small" color={t.onAccent} /> : <Text style={s.resumeText}>Continue here</Text>}
                 </Pressable>
               ) : (
                 <Pressable onPress={() => onNewThread?.(thread.cwd)} style={s.noticeBtn}>
@@ -421,34 +422,34 @@ function styles(t: Theme) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: t.panel },
     header: { flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 14, height: 52, borderBottomWidth: 1, borderBottomColor: t.border, backgroundColor: t.panel },
-    autoBadge: { backgroundColor: t.warning, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 1 },
-    autoBadgeText: { color: "#fff", fontSize: 11, fontWeight: "700", fontFamily: ui, textTransform: "uppercase" },
+    autoBadge: { backgroundColor: t.warning, borderRadius: 6, paddingHorizontal: 6, paddingVertical: t.sp(1) },
+    autoBadgeText: { color: readableOn(t.warning), fontSize: t.fs(11), fontWeight: "700", fontFamily: ui, textTransform: "uppercase" },
     findBar: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 14, height: 44, borderBottomWidth: 1, borderBottomColor: t.border, backgroundColor: t.surface },
-    findInput: { flex: 1, fontSize: 15, color: t.text, fontFamily: ui, outlineStyle: "none" } as any,
-    findCount: { fontSize: 13, color: t.faint, fontFamily: ui, minWidth: 34, textAlign: "right" },
-    headerTitle: { flex: 1, fontSize: 17, color: t.text, fontFamily: ui, marginLeft: -4 },
+    findInput: { flex: 1, fontSize: t.fs(15), color: t.text, fontFamily: ui, outlineStyle: "none" } as any,
+    findCount: { fontSize: t.fs(13), color: t.faint, fontFamily: ui, minWidth: 34, textAlign: "right" },
+    headerTitle: { flex: 1, fontSize: t.fs(17), color: t.text, fontFamily: ui, marginLeft: -4 },
     list: { paddingHorizontal: 18, paddingTop: 8, paddingBottom: 18 },
     center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 10, padding: 24 },
-    muted: { color: t.muted, fontSize: 15, fontFamily: ui, textAlign: "center" },
-    mutedSmall: { color: t.faint, fontSize: 13.5, fontFamily: ui },
-    generating: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 8, paddingHorizontal: 4 },
-    perm: { marginHorizontal: 12, marginBottom: 10, padding: 12, borderRadius: 8, borderWidth: 1, borderColor: t.warning, backgroundColor: t.surface },
+    muted: { color: t.muted, fontSize: t.fs(15), fontFamily: ui, textAlign: "center" },
+    mutedSmall: { color: t.faint, fontSize: t.fs(13.5), fontFamily: ui },
+    generating: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: t.sp(8), paddingHorizontal: 4 },
+    perm: { marginHorizontal: 12, marginBottom: 10, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: t.warning, backgroundColor: t.surface },
     permHead: { flexDirection: "row", gap: 8, alignItems: "flex-start" },
-    permTitle: { flex: 1, color: t.text, fontSize: 15, fontFamily: ui },
+    permTitle: { flex: 1, color: t.text, fontSize: t.fs(15), fontFamily: ui },
     permButtons: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 },
-    permBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6, borderWidth: 1, borderColor: t.borderStrong },
+    permBtn: { paddingHorizontal: 12, paddingVertical: t.sp(8), borderRadius: 8, borderWidth: 1, borderColor: t.borderStrong },
     permAllow: { backgroundColor: t.accent, borderColor: t.accent },
-    permBtnText: { color: t.text, fontSize: 14, fontFamily: ui },
+    permBtnText: { color: t.text, fontSize: t.fs(14), fontFamily: ui },
     notice: { borderTopWidth: 1, borderTopColor: t.border, backgroundColor: t.surface, paddingHorizontal: 18, paddingTop: 14, gap: 10 },
-    noticeText: { color: t.muted, fontSize: 14, lineHeight: 20, fontFamily: ui },
-    resumeBtn: { alignSelf: "stretch", height: 42, borderRadius: 8, backgroundColor: t.accent, alignItems: "center", justifyContent: "center" },
-    resumeText: { color: "#fff", fontSize: 15.5, fontFamily: ui, fontWeight: "600" },
+    noticeText: { color: t.muted, fontSize: t.fs(14), lineHeight: t.fs(20), fontFamily: ui },
+    resumeBtn: { alignSelf: "stretch", height: 42, borderRadius: 10, backgroundColor: t.accent, alignItems: "center", justifyContent: "center" },
+    resumeText: { color: t.onAccent, fontSize: t.fs(15.5), fontFamily: ui, fontWeight: "600" },
     noticeBtn: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start" },
-    noticeBtnText: { color: t.accent, fontSize: 14.5, fontFamily: ui },
-    toast: { position: "absolute", bottom: 120, alignSelf: "center", backgroundColor: t.text, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
-    toastText: { color: t.panel, fontSize: 14, fontFamily: ui },
-    menuItem: { paddingHorizontal: 18, paddingVertical: 13 },
-    menuText: { fontSize: 16, color: t.text, fontFamily: ui },
-    menuMeta: { fontSize: 12.5, color: t.faint, fontFamily: ui, paddingHorizontal: 18, paddingTop: 8 },
+    noticeBtnText: { color: t.accent, fontSize: t.fs(14.5), fontFamily: ui },
+    toast: { position: "absolute", bottom: 120, alignSelf: "center", backgroundColor: t.text, paddingHorizontal: 14, paddingVertical: t.sp(8), borderRadius: 10 },
+    toastText: { color: t.panel, fontSize: t.fs(14), fontFamily: ui },
+    menuItem: { paddingHorizontal: 18, paddingVertical: t.sp(13) },
+    menuText: { fontSize: t.fs(16), color: t.text, fontFamily: ui },
+    menuMeta: { fontSize: t.fs(12.5), color: t.faint, fontFamily: ui, paddingHorizontal: 18, paddingTop: 8 },
   });
 }

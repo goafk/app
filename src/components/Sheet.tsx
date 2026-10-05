@@ -12,7 +12,7 @@ export function Sheet({ visible, onClose, title, children }: { visible: boolean;
   return (
     <Modal visible={visible} transparent animationType={wide ? "fade" : "slide"} onRequestClose={onClose}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-        <Pressable style={[st.backdrop, { backgroundColor: t.dark ? "rgba(0,0,0,0.45)" : "rgba(76,79,105,0.25)" }, wide && st.center]} onPress={onClose}>
+        <Pressable style={[st.backdrop, { backgroundColor: t.scrim }, wide && st.center]} onPress={onClose}>
           <Pressable
             onPress={() => {}}
             style={[
@@ -36,7 +36,7 @@ const st = StyleSheet.create({
   center: { justifyContent: "center", alignItems: "center" },
   card: { borderWidth: StyleSheet.hairlineWidth, maxHeight: "80%" },
   cardSheet: { borderTopLeftRadius: 14, borderTopRightRadius: 14, paddingTop: 8 },
-  cardWide: { width: 420, borderRadius: 10, paddingTop: 12 },
+  cardWide: { width: 420, borderRadius: 12, paddingTop: 12 },
   grabber: { alignSelf: "center", width: 36, height: 4, borderRadius: 2, marginBottom: 8 },
   title: { fontSize: 13, fontFamily: ui, paddingHorizontal: 18, paddingVertical: 8, textTransform: "uppercase", letterSpacing: 0.6 },
 });

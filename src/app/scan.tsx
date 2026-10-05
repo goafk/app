@@ -74,7 +74,7 @@ export default function Scan() {
           <CameraView style={StyleSheet.absoluteFill} facing="back" barcodeScannerSettings={{ barcodeTypes: ["qr"] }} onBarcodeScanned={({ data }) => use(data)} />
         ) : (
           <Pressable onPress={requestPerm} style={[st.btn, { backgroundColor: t.accent }]}>
-            <Text style={st.btnText}>Allow camera to scan</Text>
+            <Text style={[st.btnText, { color: t.onAccent }]}>Allow camera to scan</Text>
           </Pressable>
         )}
       </View>
@@ -99,12 +99,12 @@ const st = StyleSheet.create({
   title: { fontSize: 24, fontWeight: "700", fontFamily: ui },
   steps: { gap: 8 },
   step: { fontSize: 15, fontFamily: ui },
-  cmd: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 12 },
+  cmd: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 12 },
   cmdText: { fontFamily: mono, fontSize: 13.5 },
   hint: { fontSize: 13.5, fontFamily: ui },
   camera: { flex: 1, minHeight: 240, borderRadius: 18, borderWidth: 1, overflow: "hidden", alignItems: "center", justifyContent: "center" },
-  btn: { minHeight: 44, paddingHorizontal: 20, borderRadius: 10, alignItems: "center", justifyContent: "center" },
-  btnText: { color: "#fff", fontSize: 16, fontFamily: ui, fontWeight: "600" },
+  btn: { minHeight: 44, paddingHorizontal: 20, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  btnText: { fontSize: 16, fontFamily: ui, fontWeight: "600" },
   row: { flexDirection: "row", justifyContent: "space-between" },
   link: { minHeight: 44, justifyContent: "center" },
   linkText: { fontSize: 15, fontFamily: ui, fontWeight: "500" },

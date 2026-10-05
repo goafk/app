@@ -107,7 +107,7 @@ function TurnFooter({ text, s, t, onCopied }: { text: string; s: St; t: Theme; o
 }
 
 function Thought({ text, s, t }: { text: string; s: St; t: Theme }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(t.thinkingOpen);
   return (
     <View style={s.thought}>
       <Pressable onPress={() => setOpen((o) => !o)} style={s.thoughtHead}>
@@ -185,28 +185,28 @@ type St = ReturnType<typeof styles>;
 
 function styles(t: Theme) {
   return StyleSheet.create({
-    user: { borderWidth: 1, borderColor: t.borderStrong, backgroundColor: t.surface, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 14, marginVertical: 10 },
-    userText: { fontFamily: mono, fontSize: 14.5, lineHeight: 23, color: t.text },
-    mention: { color: t.accent, backgroundColor: t.dark ? "rgba(198,120,221,0.14)" : "rgba(136,57,239,0.09)", borderRadius: 4 },
-    more: { marginTop: 6, fontSize: 13, color: t.accent, fontFamily: ui },
+    user: { borderWidth: 1, borderColor: t.borderStrong, backgroundColor: t.surface, borderRadius: 10, paddingHorizontal: 16, paddingVertical: t.sp(14), marginVertical: 10 },
+    userText: { fontFamily: t.mono, fontSize: t.fs(14.5), lineHeight: t.fs(23), color: t.text },
+    mention: { color: t.accent, backgroundColor: t.dark ? "rgba(198,120,221,0.14)" : "rgba(136,57,239,0.09)", borderRadius: 6 },
+    more: { marginTop: 6, fontSize: t.fs(13), color: t.accent, fontFamily: ui },
     agent: { paddingHorizontal: 4, paddingTop: 6 },
-    footer: { flexDirection: "row", justifyContent: "flex-end", gap: 20, paddingVertical: 8, paddingRight: 4 },
+    footer: { flexDirection: "row", justifyContent: "flex-end", gap: 20, paddingVertical: t.sp(8), paddingRight: 4 },
     thought: { marginVertical: 4, paddingHorizontal: 4 },
-    thoughtHead: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 4 },
-    thoughtLabel: { fontSize: 14, color: t.faint, fontFamily: ui },
-    thoughtText: { fontSize: 14, lineHeight: 21, color: t.muted, fontFamily: ui, paddingLeft: 23, paddingTop: 4, fontStyle: "italic" },
-    tool: { marginVertical: 3, borderWidth: 1, borderColor: t.border, borderRadius: 6, backgroundColor: t.dark ? t.sidebar : "#EBEEF3" },
-    toolHead: { flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 10, paddingVertical: 7, minHeight: 34 },
-    toolTitle: { flex: 1, fontFamily: mono, fontSize: 13, color: t.muted },
+    thoughtHead: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: t.sp(4) },
+    thoughtLabel: { fontSize: t.fs(14), color: t.faint, fontFamily: ui },
+    thoughtText: { fontSize: t.fs(14), lineHeight: t.fs(21), color: t.muted, fontFamily: ui, paddingLeft: 23, paddingTop: 4, fontStyle: "italic" },
+    tool: { marginVertical: 3, borderWidth: 1, borderColor: t.border, borderRadius: 8, backgroundColor: t.toolBg },
+    toolHead: { flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 10, paddingVertical: t.sp(7), minHeight: 34 },
+    toolTitle: { flex: 1, fontFamily: t.mono, fontSize: t.fs(13), color: t.muted },
     askHead: { flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 4, paddingTop: 8 },
-    askTitle: { fontSize: 15, color: t.muted, fontFamily: ui },
+    askTitle: { fontSize: t.fs(15), color: t.muted, fontFamily: ui },
     toolOpen: { paddingHorizontal: 10, paddingBottom: 10, gap: 6 },
-    toolBody: { fontFamily: mono, fontSize: 12, lineHeight: 18, color: t.muted },
-    toolOutput: { backgroundColor: t.codeBg, borderRadius: 4, padding: 8, color: t.text },
-    plan: { borderWidth: 1, borderColor: t.border, borderRadius: 8, padding: 12, marginVertical: 8 },
-    planTitle: { fontSize: 13, color: t.muted, fontFamily: ui, marginBottom: 6 },
-    planRow: { flexDirection: "row", gap: 8, paddingVertical: 2 },
-    planMark: { width: 16, color: t.faint, fontSize: 14 },
-    planText: { flex: 1, color: t.text, fontSize: 14.5, lineHeight: 21, fontFamily: ui },
+    toolBody: { fontFamily: t.mono, fontSize: t.fs(12), lineHeight: t.fs(18), color: t.muted },
+    toolOutput: { backgroundColor: t.codeBg, borderRadius: 6, padding: 8, color: t.text },
+    plan: { borderWidth: 1, borderColor: t.border, borderRadius: 10, padding: 12, marginVertical: 8 },
+    planTitle: { fontSize: t.fs(13), color: t.muted, fontFamily: ui, marginBottom: 6 },
+    planRow: { flexDirection: "row", gap: 8, paddingVertical: t.sp(2) },
+    planMark: { width: 16, color: t.faint, fontSize: t.fs(14) },
+    planText: { flex: 1, color: t.text, fontSize: t.fs(14.5), lineHeight: t.fs(21), fontFamily: ui },
   });
 }

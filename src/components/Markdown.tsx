@@ -18,7 +18,7 @@ export const Markdown = memo(function Markdown({ text, size = 15.5 }: Props) {
       return [{ type: "paragraph", raw: text, text, tokens: [{ type: "text", raw: text, text }] } as any];
     }
   }, [text]);
-  const s = useMemo(() => styles(t, size), [t, size]);
+  const s = useMemo(() => styles(t, t.fs(size)), [t, size]);
   return <View>{tokens.map((tok, i) => <Block key={i} tok={tok} s={s} t={t} first={i === 0} />)}</View>;
 });
 
@@ -197,7 +197,7 @@ function styles(t: Theme, size: number) {
     em: { fontStyle: "italic" },
     del: { textDecorationLine: "line-through" },
     code: {
-      fontFamily: mono,
+      fontFamily: t.mono,
       fontSize: size * 0.9,
       backgroundColor: t.codeBg,
       color: t.text,
@@ -206,18 +206,18 @@ function styles(t: Theme, size: number) {
     },
     link: { color: t.link, textDecorationLine: "underline" },
     pathLink: { color: t.link, textDecorationLine: "underline" },
-    codeLink: { fontFamily: mono, fontSize: size * 0.9, backgroundColor: t.codeBg, borderRadius: 4 },
-    codeBlock: { backgroundColor: t.codeBg, borderRadius: 6, marginBottom: 12 },
-    codeText: { fontFamily: mono, fontSize: size * 0.82, lineHeight: size * 1.35, color: t.text },
+    codeLink: { fontFamily: t.mono, fontSize: size * 0.9, backgroundColor: t.codeBg, borderRadius: 6 },
+    codeBlock: { backgroundColor: t.codeBg, borderRadius: 8, marginBottom: 12 },
+    codeText: { fontFamily: t.mono, fontSize: size * 0.82, lineHeight: size * 1.35, color: t.text },
     quote: { borderLeftWidth: 3, borderLeftColor: t.borderStrong, paddingLeft: 12, marginBottom: 12 },
     list: { marginBottom: 8, paddingLeft: 10 },
     li: { flexDirection: "row", marginBottom: 2 },
     bullet: { ...base, width: 22, color: t.text, textAlign: "center", marginRight: 4 },
     ordinal: { width: 26, textAlign: "right", marginRight: 8 },
-    task: { width: 20, height: 20, borderRadius: 4, borderWidth: 1, borderColor: t.borderStrong, backgroundColor: t.surface, marginTop: (lh - 20) / 2, marginRight: 10, alignItems: "center", justifyContent: "center" },
+    task: { width: 20, height: 20, borderRadius: 6, borderWidth: 1, borderColor: t.borderStrong, backgroundColor: t.surface, marginTop: (lh - 20) / 2, marginRight: 10, alignItems: "center", justifyContent: "center" },
     taskOn: { backgroundColor: t.codeBg },
     taskMark: { color: t.accent, fontSize: 13, lineHeight: 16, fontWeight: "700" },
-    table: { borderWidth: 1, borderColor: t.borderStrong, borderRadius: 4, marginBottom: 14, overflow: "hidden" },
+    table: { borderWidth: 1, borderColor: t.borderStrong, borderRadius: 6, marginBottom: 14, overflow: "hidden" },
     thead: { backgroundColor: t.tableHead },
     tr: { flexDirection: "row" },
     rowBorder: { borderTopWidth: 1, borderTopColor: t.borderStrong },

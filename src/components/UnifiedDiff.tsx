@@ -7,6 +7,7 @@ import type { Theme } from "../lib/theme";
 const MAX = 400;
 
 export function UnifiedDiff({ text, t }: { text: string; t: Theme }) {
+  const st = sheet(t);
   const [all, setAll] = useState(false);
   const lines = useMemo(() => {
     const out: string[] = [];
@@ -24,7 +25,7 @@ export function UnifiedDiff({ text, t }: { text: string; t: Theme }) {
   }, [text]);
   const shown = all ? lines : lines.slice(0, MAX);
   const bg = (l: string) =>
-    l.startsWith("+") ? (t.dark ? "rgba(152,195,121,0.14)" : "rgba(64,160,43,0.12)") : l.startsWith("-") ? (t.dark ? "rgba(224,108,117,0.14)" : "rgba(210,15,57,0.10)") : "transparent";
+    l.startsWith("+") ? t.diffAdd : l.startsWith("-") ? t.diffDel : "transparent";
   return (
     <View style={[st.box, { borderColor: t.border, backgroundColor: t.surface }]}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -51,9 +52,19 @@ export function UnifiedDiff({ text, t }: { text: string; t: Theme }) {
   );
 }
 
-const st = StyleSheet.create({
-  box: { borderWidth: 1, borderRadius: 6, overflow: "hidden", marginTop: 6, marginBottom: 4 },
-  line: { fontFamily: mono, fontSize: 12, lineHeight: 18, paddingHorizontal: 10 },
-  hunk: { fontFamily: mono, fontSize: 11.5, lineHeight: 20, paddingHorizontal: 10, marginVertical: 2 },
+function make(t: Theme) {
+  return StyleSheet.create({
+  box: { borderWidth: 1, borderRadius: 8, overflow: "hidden", marginTop: 6, marginBottom: 4 },
+  line: { fontFamily: t.mono, fontSize: t.fs(12), lineHeight: t.fs(18), paddingHorizontal: 10 },
+  hunk: { fontFamily: t.mono, fontSize: t.fs(11.5), lineHeight: t.fs(20), paddingHorizontal: 10, marginVertical: 2 },
   more: { padding: 8, alignItems: "center" },
-});
+  });
+}
+const sheets = new WeakMap<Theme, ReturnType<typeof make>>();
+/** Styles for a theme, built once per theme (rows render many times). */
+function sheet(t: Theme) {
+  let s = sheets.get(t);
+  if (!s) sheets.set(t, (s = make(t)));
+  return s;
+}
+

@@ -1,4 +1,4 @@
-// Syntax highlighting with Prism, colored like Zed's Catppuccin Latte / One Dark themes.
+// Syntax highlighting with Prism, coloured by the active theme's syntax palette.
 import Prism from "prismjs";
 import "prismjs/components/prism-jsx";
 import "prismjs/components/prism-typescript";
@@ -47,18 +47,9 @@ export function tokenize(code: string, lang?: string): Span[] {
   return out;
 }
 
-const LATTE = {
-  keyword: "#8839EF", function: "#1E66F5", string: "#40A02B", number: "#FE640B", parameter: "#E64553", comment: "#9CA0B0",
-  class: "#DF8E1D", operator: "#04A5E5", property: "#1E66F5", tag: "#1E66F5", attr: "#DF8E1D", inserted: "#40A02B", deleted: "#D20F39", variable: "#4C4F69",
-};
-const ONE_DARK = {
-  keyword: "#C678DD", function: "#61AFEF", string: "#98C379", number: "#D19A66", parameter: "#E06C75", comment: "#5C6370",
-  class: "#E5C07B", operator: "#56B6C2", property: "#E06C75", tag: "#E06C75", attr: "#D19A66", inserted: "#98C379", deleted: "#E06C75", variable: "#ABB2BF",
-};
-
 /** Color for a token's Prism types (most specific wins). */
 export function colorFor(types: string[], t: Theme): string | undefined {
-  const c = t.dark ? ONE_DARK : LATTE;
+  const c = t.syntax;
   const has = (...k: string[]) => k.some((x) => types.includes(x));
   if (has("comment", "prolog", "doctype", "cdata")) return c.comment;
   if (has("inserted")) return c.inserted;
@@ -67,8 +58,8 @@ export function colorFor(types: string[], t: Theme): string | undefined {
   if (has("number", "boolean", "constant")) return c.number;
   if (has("keyword", "important", "atrule", "rule")) return c.keyword;
   if (has("function", "function-variable", "method")) return c.function;
-  if (has("class-name", "builtin", "maybe-class-name", "namespace", "type")) return c.class;
-  if (has("parameter")) return c.parameter;
+  if (has("class-name", "builtin", "maybe-class-name", "namespace", "type")) return c.type;
+  if (has("parameter")) return c.variable;
   if (has("operator", "entity")) return c.operator;
   if (has("tag")) return c.tag;
   if (has("attr-name", "attr-value", "selector")) return c.attr;

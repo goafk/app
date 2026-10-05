@@ -26,7 +26,7 @@ function CopyButton({ text, t }: { text: string; t: Theme }) {
 
 export function CodeBlock({ code, lang, size = 14 }: { code: string; lang?: string; size?: number }) {
   const t = useTheme();
-  const s = useMemo(() => styles(t, size), [t, size]);
+  const s = useMemo(() => styles(t, t.fs(size)), [t, size]);
   const [wrap, setWrap] = useState(false);
   const isDiff = lang === "diff" || lang === "patch";
   const spans = useMemo(() => (isDiff ? [] : tokenize(code, lang)), [code, lang, isDiff]);
@@ -137,12 +137,12 @@ export function MermaidBlock({ code }: { code: string }) {
 
 function styles(t: Theme, size: number) {
   return StyleSheet.create({
-    box: { backgroundColor: t.surface, borderRadius: 8, borderWidth: 1, borderColor: t.border, marginBottom: 12, overflow: "hidden" },
+    box: { backgroundColor: t.surface, borderRadius: 10, borderWidth: 1, borderColor: t.border, marginBottom: 12, overflow: "hidden" },
     tools: { position: "absolute", top: 8, right: 10, zIndex: 2, flexDirection: "row", gap: 14, backgroundColor: t.surface, paddingLeft: 6 },
     pad: { paddingHorizontal: 14, paddingVertical: 12, paddingRight: 64 },
-    text: { fontFamily: mono, fontSize: size * 0.92, lineHeight: size * 1.75, color: t.text },
+    text: { fontFamily: t.mono, fontSize: size * 0.92, lineHeight: size * 1.75, color: t.text },
     tabs: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingTop: 10, paddingBottom: 6 },
-    tab: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 5 },
+    tab: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
     tabOn: { backgroundColor: t.dark ? "rgba(97,175,239,0.15)" : "rgba(4,165,229,0.15)" },
     tabText: { fontSize: 14.5, color: t.text, fontFamily: ui },
   });

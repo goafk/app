@@ -369,7 +369,7 @@ export function Composer({ agentName, options, running, disabled, onSend, onCanc
           </Pressable>
         ) : (
           <Pressable onPress={send} disabled={!canSend} style={[s.send, canSend && { backgroundColor: t.accent }]} accessibilityLabel="Send">
-            {sending ? <ActivityIndicator size="small" color={t.faint} /> : <SendIcon color={canSend ? "#FFFFFF" : t.faint} size={18} />}
+            {sending ? <ActivityIndicator size="small" color={t.faint} /> : <SendIcon color={canSend ? t.onAccent : t.faint} size={18} />}
           </Pressable>
         )}
       </View>
@@ -414,45 +414,45 @@ export function Composer({ agentName, options, running, disabled, onSend, onCanc
 function styles(t: Theme) {
   return StyleSheet.create({
     root: { borderTopWidth: 1, borderTopColor: t.border, backgroundColor: t.surface, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
-    cmdMenu: { borderWidth: 1, borderColor: t.border, borderRadius: 8, backgroundColor: t.panel, marginBottom: 10, overflow: "hidden" },
+    cmdMenu: { borderWidth: 1, borderColor: t.border, borderRadius: 10, backgroundColor: t.panel, marginBottom: 10, overflow: "hidden" },
     cmdRow: { paddingHorizontal: 12, paddingVertical: 8 },
-    cmdName: { fontFamily: mono, fontSize: 14, color: t.text },
+    cmdName: { fontFamily: t.mono, fontSize: t.fs(14), color: t.text },
     thumbs: { gap: 8, paddingBottom: 10 },
     thumbWrap: { position: "relative" },
-    thumb: { width: 64, height: 64, borderRadius: 6, borderWidth: 1, borderColor: t.border },
+    thumb: { width: 64, height: 64, borderRadius: 8, borderWidth: 1, borderColor: t.border },
     thumbX: { position: "absolute", top: -6, right: -6, width: 20, height: 20, borderRadius: 10, backgroundColor: "rgba(0,0,0,0.65)", alignItems: "center", justifyContent: "center" },
     quick: { gap: 6, paddingBottom: 10 },
     quickChip: { flexDirection: "row", alignItems: "center", gap: 4, minHeight: 36, borderWidth: 1, borderColor: t.borderStrong, borderRadius: 18, paddingHorizontal: 13, backgroundColor: t.panel },
-    quickText: { fontSize: 13.5, color: t.text, fontFamily: ui },
+    quickText: { fontSize: t.fs(13.5), color: t.text, fontFamily: ui },
     usage: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 40, paddingHorizontal: 4 },
     toolbar: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 8, marginLeft: -8 },
     toolBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
     toggleChip: { borderWidth: 1, borderColor: t.borderStrong, borderRadius: 18, width: 36, justifyContent: "center", marginLeft: 4 },
     inputSide: { alignItems: "flex-end", gap: 8 },
     usageTrack: { width: 36, height: 4, borderRadius: 2, overflow: "hidden" },
-    usageText: { fontSize: 12, color: t.faint, fontFamily: ui },
+    usageText: { fontSize: t.fs(12), color: t.faint, fontFamily: ui },
     fileRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-    fileName: { fontFamily: ui, fontSize: 14.5, color: t.text, flexShrink: 0, maxWidth: "60%" },
-    fileDir: { flex: 1, fontFamily: ui, fontSize: 13, color: t.faint },
-    cmdDesc: { fontFamily: ui, fontSize: 13, color: t.muted, marginTop: 2 },
+    fileName: { fontFamily: ui, fontSize: t.fs(14.5), color: t.text, flexShrink: 0, maxWidth: "60%" },
+    fileDir: { flex: 1, fontFamily: ui, fontSize: t.fs(13), color: t.faint },
+    cmdDesc: { fontFamily: ui, fontSize: t.fs(13), color: t.muted, marginTop: 2 },
     inputRow: { flexDirection: "row", alignItems: "flex-start" },
-    input: { flex: 1, minHeight: 52, maxHeight: 260, fontFamily: mono, fontSize: 15, lineHeight: 24, color: t.text, padding: 0, outlineStyle: "none" } as any,
+    input: { flex: 1, minHeight: 52, maxHeight: 260, fontFamily: t.mono, fontSize: t.fs(15), lineHeight: t.fs(24), color: t.text, padding: 0, outlineStyle: "none" } as any,
     expand: { paddingLeft: 10, paddingTop: 4 },
-    err: { color: t.error, fontSize: 13, fontFamily: ui, marginTop: 6 },
+    err: { color: t.error, fontSize: t.fs(13), fontFamily: ui, marginTop: 6 },
     iconRow: { flexDirection: "row", alignItems: "center", gap: 18, marginTop: 10, marginBottom: 6, paddingLeft: 2 },
     controls: { flexDirection: "row", alignItems: "center" },
     chips: { gap: 4, alignItems: "center" },
-    chip: { flexDirection: "row", alignItems: "center", gap: 3, paddingHorizontal: 5, minHeight: 36, borderRadius: 6 },
-    chipText: { fontSize: 14.5, color: t.text, fontFamily: ui, maxWidth: 200 },
+    chip: { flexDirection: "row", alignItems: "center", gap: 3, paddingHorizontal: 5, minHeight: 36, borderRadius: 8 },
+    chipText: { fontSize: t.fs(14.5), color: t.text, fontFamily: ui, maxWidth: 200 },
     bottomRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 6 },
     toggles: { flexDirection: "row", alignItems: "center", gap: 16, flexShrink: 1 },
     toggle: { flexDirection: "row", alignItems: "center", gap: 10, paddingLeft: 8 },
-    toggleLabel: { fontSize: 15.5, color: t.text, fontFamily: ui },
-    send: { width: 42, height: 38, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: t.hover },
-    group: { fontSize: 12, color: t.faint, fontFamily: ui, paddingHorizontal: 18, paddingTop: 10, paddingBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 },
+    toggleLabel: { fontSize: t.fs(15.5), color: t.text, fontFamily: ui },
+    send: { width: 42, height: 38, borderRadius: 10, alignItems: "center", justifyContent: "center", backgroundColor: t.hover },
+    group: { fontSize: t.fs(12), color: t.faint, fontFamily: ui, paddingHorizontal: 18, paddingTop: 10, paddingBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 },
     opt: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 18, paddingVertical: 11 },
-    optName: { fontSize: 16, color: t.text, fontFamily: ui },
-    optDesc: { fontSize: 13, color: t.muted, fontFamily: ui, marginTop: 2 },
+    optName: { fontSize: t.fs(16), color: t.text, fontFamily: ui },
+    optDesc: { fontSize: t.fs(13), color: t.muted, fontFamily: ui, marginTop: 2 },
   });
 }
 

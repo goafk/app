@@ -98,7 +98,7 @@ function ShareForm({ shared, onDone }: { shared: Shared; onDone: () => void }) {
         <View style={s.chips}>
           {projects.map((p) => (
             <Pressable key={p.path} onPress={() => { setProject(p); setTarget("new"); }} style={[s.chip, project?.path === p.path && s.chipOn]}>
-              <Text style={[s.chipText, project?.path === p.path && { color: "#fff" }]}>{p.name}</Text>
+              <Text style={[s.chipText, project?.path === p.path && { color: t.onAccent }]}>{p.name}</Text>
             </Pressable>
           ))}
         </View>
@@ -112,7 +112,7 @@ function ShareForm({ shared, onDone }: { shared: Shared; onDone: () => void }) {
           <View style={s.chips}>
             {agents.map((a) => (
               <Pressable key={a.agentId} onPress={() => setAgentId(a.agentId)} style={[s.chip, agentId === a.agentId && s.chipOn]}>
-                <Text style={[s.chipText, agentId === a.agentId && { color: "#fff" }]}>{a.name}</Text>
+                <Text style={[s.chipText, agentId === a.agentId && { color: t.onAccent }]}>{a.name}</Text>
               </Pressable>
             ))}
           </View>
@@ -127,7 +127,7 @@ function ShareForm({ shared, onDone }: { shared: Shared; onDone: () => void }) {
 
         {err ? <Text style={[s.muted, { color: t.error }]}>{err}</Text> : null}
         <Pressable onPress={send} disabled={busy || !project} style={[s.primary, (busy || !project) && { opacity: 0.6 }]}>
-          {busy ? <ActivityIndicator color="#fff" /> : <Text style={s.primaryText}>Send</Text>}
+          {busy ? <ActivityIndicator color={t.onAccent} /> : <Text style={s.primaryText}>Send</Text>}
         </Pressable>
       </ScrollView>
     </View>
@@ -138,21 +138,21 @@ function styles(t: Theme) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: t.panel },
     header: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 14, height: 52, borderBottomWidth: 1, borderBottomColor: t.border },
-    title: { fontSize: 17, color: t.text, fontFamily: ui },
-    preview: { borderWidth: 1, borderColor: t.borderStrong, borderRadius: 8, backgroundColor: t.surface, padding: 12, gap: 10 },
-    previewText: { fontFamily: mono, fontSize: 13.5, lineHeight: 20, color: t.text },
-    thumb: { width: 90, height: 90, borderRadius: 6 },
-    muted: { color: t.muted, fontSize: 14, fontFamily: ui },
-    input: { minHeight: 60, borderWidth: 1, borderColor: t.borderStrong, borderRadius: 8, padding: 12, fontSize: 15, color: t.text, fontFamily: ui, outlineStyle: "none" } as any,
-    label: { color: t.muted, fontSize: 13, fontFamily: ui, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 4 },
+    title: { fontSize: t.fs(17), color: t.text, fontFamily: ui },
+    preview: { borderWidth: 1, borderColor: t.borderStrong, borderRadius: 10, backgroundColor: t.surface, padding: 12, gap: 10 },
+    previewText: { fontFamily: t.mono, fontSize: t.fs(13.5), lineHeight: t.fs(20), color: t.text },
+    thumb: { width: 90, height: 90, borderRadius: 8 },
+    muted: { color: t.muted, fontSize: t.fs(14), fontFamily: ui },
+    input: { minHeight: 60, borderWidth: 1, borderColor: t.borderStrong, borderRadius: 10, padding: 12, fontSize: t.fs(15), color: t.text, fontFamily: ui, outlineStyle: "none" } as any,
+    label: { color: t.muted, fontSize: t.fs(13), fontFamily: ui, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 4 },
     chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
     chip: { borderWidth: 1, borderColor: t.borderStrong, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
     chipOn: { backgroundColor: t.accent, borderColor: t.accent },
-    chipText: { fontSize: 14, color: t.text, fontFamily: ui },
-    row: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 11, borderRadius: 8, borderWidth: 1, borderColor: t.border },
+    chipText: { fontSize: t.fs(14), color: t.text, fontFamily: ui },
+    row: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 11, borderRadius: 10, borderWidth: 1, borderColor: t.border },
     rowOn: { borderColor: t.accent },
-    rowText: { flex: 1, fontSize: 15, color: t.text, fontFamily: ui },
-    primary: { height: 46, borderRadius: 8, backgroundColor: t.accent, alignItems: "center", justifyContent: "center", marginTop: 6 },
-    primaryText: { color: "#fff", fontSize: 16, fontFamily: ui, fontWeight: "600" },
+    rowText: { flex: 1, fontSize: t.fs(15), color: t.text, fontFamily: ui },
+    primary: { height: 46, borderRadius: 10, backgroundColor: t.accent, alignItems: "center", justifyContent: "center", marginTop: 6 },
+    primaryText: { color: t.onAccent, fontSize: t.fs(16), fontFamily: ui, fontWeight: "600" },
   });
 }

@@ -10,8 +10,8 @@ export type WidgetProject = { name: string; path: string };
 export type WidgetData = { needs: number; running: number; items: WidgetItem[]; projects: WidgetProject[]; updatedAt: number; error?: string };
 
 const T = {
-  light: { base: "#EFF1F5", raised: "#E6E9EF", pressed: "#DCE0E8", text: "#4C4F69", muted: "#6C6F85", faint: "#8C8FA1", accent: "#8839EF", warn: "#DF8E1D", warnBg: "#F6E7CF", accentBg: "#E9DDFB", ok: "#40A02B", okBg: "#DCEDD6" },
-  dark: { base: "#282C34", raised: "#2F343E", pressed: "#3A404B", text: "#D7DAE0", muted: "#9DA5B4", faint: "#7F848E", accent: "#C678DD", warn: "#E5C07B", warnBg: "#3B3628", accentBg: "#3A3145", ok: "#98C379", okBg: "#2E3A2B" },
+  light: { base: "#F7F7F5", raised: "#FFFFFF", pressed: "#EFEFEC", text: "#111315", muted: "#666C74", faint: "#8C929A", accent: "#111315", warn: "#9A5F00", warnBg: "#F4E7CC", accentBg: "#E6E6E3", ok: "#3F7F3A", okBg: "#DDEBD8" },
+  dark: { base: "#111315", raised: "#1A1C1F", pressed: "#2A2D31", text: "#F7F7F5", muted: "#A8ABB0", faint: "#8C929A", accent: "#F7F7F5", warn: "#E3B868", warnBg: "#3A3220", accentBg: "#2A2D31", ok: "#A8CC8C", okBg: "#24301F" },
 } as const;
 type Pal = (typeof T)["light"] | (typeof T)["dark"];
 
