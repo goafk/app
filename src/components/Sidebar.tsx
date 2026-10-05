@@ -7,7 +7,7 @@ import type { Project, SidebarThread } from "../lib/api";
 import { useStore } from "../lib/store";
 import { ui, useTheme } from "../lib/theme";
 import type { Theme } from "../lib/theme";
-import { BellIcon, ChevronRight, FolderIcon, GitIcon, ClockIcon, GearIcon, PlusIcon, SearchIcon, SidebarIcon, WarningIcon } from "./Icons";
+import { BellIcon, ChevronDown, ChevronRight, FolderIcon, GitIcon, ClockIcon, GearIcon, PlusIcon, SearchIcon, SidebarIcon, WarningIcon } from "./Icons";
 import { EmptyState } from "./EmptyState";
 import { TabBar } from "./TabBar";
 import { HubSwitcher } from "./HubSwitcher";
@@ -91,10 +91,79 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
 
   const now = Date.now();
 
+  const renderRow = (item: Row, index: number) => {
+    if (item.type === "project") {
+      const afterThread = rows[index - 1]?.type === "thread";
+      // Collapsed projects still say what's going on inside: needs you > working > unread.
+      const live = item.project.threads.filter((x) => !x.archived);
+      const collapsed = !q.trim() && !expanded[item.project.path];
+      const waiting = collapsed && live.some((x) => x.status === "needs_permission");
+      const working = collapsed && !waiting && live.some((x) => x.status === "running");
+      const unread = collapsed && !waiting && !working && live.some((x) => x.unread);
+      const actions = (
+        <>
+          {onReviewChanges ? (
+            <Pressable hitSlop={10} onPress={() => onReviewChanges(item.project)} style={s.projectPlus} accessibilityLabel={`Changes in ${item.project.name}`}>
+              <GitIcon color={t.faint} size={16} />
+            </Pressable>
+          ) : null}
+          <Pressable hitSlop={10} onPress={() => onNewThread(item.project)} style={s.projectPlus} accessibilityLabel={`New thread in ${item.project.name}`}>
+            <PlusIcon color={t.faint} size={16} />
+          </Pressable>
+        </>
+      );
+      return (
+        <Pressable
+          onPress={() => toggle(item.project.path)}
+          onLongPress={() => onReviewChanges?.(item.project)}
+          style={({ pressed }) => [phone ? s.projectCard : [s.project, afterThread && s.projectTop], pressed && { backgroundColor: t.hover }]}
+        >
+          <Text style={[s.projectName, phone && s.projectNameCard]} numberOfLines={1}>{item.project.name}</Text>
+          {waiting ? <WarningIcon color={t.warning} size={15} /> : null}
+          {working ? <ActivityIndicator size="small" color={t.muted} style={{ transform: [{ scale: 0.75 }] }} /> : null}
+          {unread ? <View style={[s.projectDot, { backgroundColor: t.accent }]} /> : null}
+          {phone ? (
+            <>
+              {collapsed ? <Text style={s.projectCount}>{live.length || ""}</Text> : actions}
+              <View style={{ transform: [{ rotate: collapsed ? "-90deg" : "0deg" }], marginLeft: 2 }}>
+                <ChevronDown color={t.faint} size={16} />
+              </View>
+            </>
+          ) : (
+            actions
+          )}
+        </Pressable>
+      );
+    }
+    if (item.type === "empty") {
+      return (
+        <View style={[s.empty, phone && { borderBottomWidth: 0, backgroundColor: t.surface }]}>
+          <View style={s.emptyDot} />
+          <Text style={s.emptyText}>No threads yet</Text>
+        </View>
+      );
+    }
+    const th = item.thread;
+    return (
+      <ThreadRow
+        th={th}
+        t={t}
+        bg={phone ? t.surface : undefined}
+        now={now}
+        selected={selected === th.id}
+        subtitle={mode !== "projects" ? item.project.name : undefined}
+        preview={mode === "inbox"}
+        onOpen={() => onOpen(th)}
+        onMenu={() => setMenu(th)}
+        onArchive={() => setMeta(th, { archived: !th.archived })}
+      />
+    );
+  };
+
   return (
-    <View style={[s.root, { paddingTop: insets.top }]}>
+    <View style={[s.root, phone && s.rootPhone, { paddingTop: insets.top }]}>
       <HubSwitcher header={phone} />
-      <View style={s.searchBar}>
+      <View style={[s.searchBar, phone && s.searchPill]}>
         <SearchIcon color={t.faint} size={17} />
         <TextInput
           value={q}
@@ -124,56 +193,18 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
         }}
         initialNumToRender={30}
         renderItem={({ item, index }) => {
-          if (item.type === "project") {
-            const afterThread = rows[index - 1]?.type === "thread";
-            // Collapsed projects still say what's going on inside: needs you > working > unread.
-            const live = item.project.threads.filter((x) => !x.archived);
-            const collapsed = !q.trim() && !expanded[item.project.path];
-            const waiting = collapsed && live.some((x) => x.status === "needs_permission");
-            const working = collapsed && !waiting && live.some((x) => x.status === "running");
-            const unread = collapsed && !waiting && !working && live.some((x) => x.unread);
-            return (
-              <Pressable
-                onPress={() => toggle(item.project.path)}
-                onLongPress={() => onReviewChanges?.(item.project)}
-                style={({ pressed }) => [s.project, afterThread && s.projectTop, pressed && { backgroundColor: t.hover }]}
-              >
-                <Text style={s.projectName} numberOfLines={1}>{item.project.name}</Text>
-                {waiting ? <WarningIcon color={t.warning} size={15} /> : null}
-                {working ? <ActivityIndicator size="small" color={t.muted} style={{ transform: [{ scale: 0.75 }] }} /> : null}
-                {unread ? <View style={[s.projectDot, { backgroundColor: t.accent }]} /> : null}
-                {onReviewChanges ? (
-                  <Pressable hitSlop={10} onPress={() => onReviewChanges(item.project)} style={s.projectPlus}>
-                    <GitIcon color={t.faint} size={16} />
-                  </Pressable>
-                ) : null}
-                <Pressable hitSlop={10} onPress={() => onNewThread(item.project)} style={s.projectPlus}>
-                  <PlusIcon color={t.faint} size={16} />
-                </Pressable>
-              </Pressable>
-            );
-          }
-          if (item.type === "empty") {
-            return (
-              <View style={s.empty}>
-                <View style={s.emptyDot} />
-                <Text style={s.emptyText}>No threads yet</Text>
-              </View>
-            );
-          }
-          const th = item.thread;
+          const el = renderRow(item, index);
+          if (!phone) return el;
+          // Phones: each project (or the whole Recent / Needs you list) is a rounded card.
+          const grouped = mode === "projects";
+          const first = index === 0 || (grouped && item.type === "project");
+          const next = rows[index + 1];
+          const last = !next || (grouped && next.type === "project");
           return (
-            <ThreadRow
-              th={th}
-              t={t}
-              now={now}
-              selected={selected === th.id}
-              subtitle={mode !== "projects" ? item.project.name : undefined}
-              preview={mode === "inbox"}
-              onOpen={() => onOpen(th)}
-              onMenu={() => setMenu(th)}
-              onArchive={() => setMeta(th, { archived: !th.archived })}
-            />
+            <View style={[s.card, first && s.cardFirst, last && s.cardLast]}>
+              {!first ? <View style={s.divider} /> : null}
+              {el}
+            </View>
           );
         }}
         ListEmptyComponent={
@@ -185,7 +216,7 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
             <EmptyState title="No matching threads" body={q.trim() ? `Nothing called "${q.trim()}".` : undefined} />
           )
         }
-        contentContainerStyle={phone ? { paddingBottom: 12 } : undefined}
+        contentContainerStyle={phone ? { paddingBottom: 24 } : undefined}
       />
       <Sheet visible={picking} onClose={() => setPicking(false)} title="New thread in…">
         {recentProjects.map((p) => (
@@ -287,6 +318,7 @@ export function Sidebar({ onOpen, onNewThread, onSettings, onToggleSidebar, onRe
 function styles(t: Theme) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: t.sidebar },
+    rootPhone: { backgroundColor: t.panel },
     searchBar: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, height: 46, borderBottomWidth: 1, borderBottomColor: t.border },
     search: { flex: 1, fontSize: t.fs(16), color: t.text, fontFamily: ui, paddingVertical: t.sp(8), outlineStyle: "none" } as any,
     error: { flexDirection: "row", gap: 8, alignItems: "center", padding: 12, borderBottomWidth: 1, borderBottomColor: t.border },
@@ -319,6 +351,14 @@ function styles(t: Theme) {
     renameBtn: { height: 42, borderRadius: 10, backgroundColor: t.accent, alignItems: "center", justifyContent: "center", marginBottom: 6 },
     renameBtnText: { color: t.onAccent, fontSize: t.fs(15.5), fontFamily: ui, fontWeight: "600" },
     liveDot: { width: 7, height: 7, borderRadius: 6 },
+    card: { marginHorizontal: 12, backgroundColor: t.surface, borderLeftWidth: 1, borderRightWidth: 1, borderColor: t.border, overflow: "hidden" },
+    cardFirst: { marginTop: 10, borderTopWidth: 1, borderTopLeftRadius: 18, borderTopRightRadius: 18 },
+    cardLast: { borderBottomWidth: 1, borderBottomLeftRadius: 18, borderBottomRightRadius: 18 },
+    divider: { height: StyleSheet.hairlineWidth, backgroundColor: t.border, marginLeft: 50 },
+    projectCard: { flexDirection: "row", alignItems: "center", gap: 6, paddingLeft: 16, paddingRight: 14, minHeight: 54, backgroundColor: t.surface },
+    projectNameCard: { fontWeight: "600", fontSize: t.fs(16) },
+    projectCount: { fontSize: t.fs(13.5), color: t.faint, fontFamily: ui, minWidth: 14, textAlign: "right" },
+    searchPill: { marginHorizontal: 12, marginBottom: 2, height: 42, borderRadius: 14, borderBottomWidth: 0, paddingHorizontal: 12, backgroundColor: t.dark ? t.optionBg : t.sidebar },
     pickRow: { flexDirection: "row", alignItems: "center", gap: 12, minHeight: 52, paddingHorizontal: 18 },
   });
 }

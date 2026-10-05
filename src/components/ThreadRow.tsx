@@ -21,9 +21,11 @@ type Props = {
   onOpen: () => void;
   onMenu: () => void;
   onArchive: () => void;
+  /** Row background (the sidebar's by default; phones show rows on cards). */
+  bg?: string;
 };
 
-export function ThreadRow({ th, t, selected, subtitle, preview, now, onOpen, onMenu, onArchive }: Props) {
+export function ThreadRow({ th, t, selected, subtitle, preview, now, onOpen, onMenu, onArchive, bg }: Props) {
   const ref = useRef<SwipeableMethods>(null);
   const st = sheet(t);
   const waiting = th.status === "needs_permission";
@@ -32,7 +34,7 @@ export function ThreadRow({ th, t, selected, subtitle, preview, now, onOpen, onM
       onPress={onOpen}
       onLongPress={onMenu}
       delayLongPress={350}
-      style={({ pressed }) => [st.thread, { backgroundColor: t.sidebar }, selected && { backgroundColor: t.selected }, pressed && !selected && { backgroundColor: t.hover }]}
+      style={({ pressed }) => [st.thread, { backgroundColor: bg ?? t.sidebar }, selected && { backgroundColor: t.selected }, pressed && !selected && { backgroundColor: t.hover }]}
       {...(Platform.OS === "web" ? ({ onContextMenu: (e: any) => (e.preventDefault(), onMenu()) } as any) : {})}
     >
       <View style={st.line}>

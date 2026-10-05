@@ -9,14 +9,14 @@ import { BellIcon, ClockIcon, FolderIcon, GearIcon, PlusIcon } from "./Icons";
 
 export type TabKey = "projects" | "inbox" | "history" | "settings";
 
-const BUMP = 16; // how far the bump rises above the bar
+const BUMP = 20; // how far the bump rises above the bar
 const BAR = 60; // bar height below the flat top edge
-const BTN = 58; // the round + button
+const BTN = 64; // the round + button
 
 /** Top edge: flat, then a smooth rise to the bump's crest at the centre, and back down. */
 function shape(w: number, h: number): { fill: string; edge: string } {
   const c = w / 2;
-  const half = 64; // half-width of the bump at its base
+  const half = 74; // half-width of the bump at its base
   const top = `M0 ${BUMP} L${c - half} ${BUMP} C${c - half * 0.55} ${BUMP} ${c - half * 0.62} 0 ${c} 0 C${c + half * 0.62} 0 ${c + half * 0.55} ${BUMP} ${c + half} ${BUMP} L${w} ${BUMP}`;
   return { edge: top, fill: `${top} L${w} ${h} L0 ${h} Z` };
 }
@@ -73,7 +73,7 @@ export function TabBar({ active, inboxCount, onTab, onNew, canNew }: { active: T
             accessibilityLabel="New thread"
             style={({ pressed }) => [
               st.plus,
-              { backgroundColor: t.accent, shadowOpacity: t.dark ? 0.55 : 0.25, opacity: canNew ? 1 : 0.5 },
+              { backgroundColor: t.accent, borderColor: t.surface, shadowOpacity: t.dark ? 0.55 : 0.22, opacity: canNew ? 1 : 0.5 },
               pressed && { transform: [{ scale: 0.94 }] },
             ]}
           >
@@ -97,7 +97,8 @@ const st = StyleSheet.create({
     width: BTN,
     height: BTN,
     borderRadius: BTN / 2,
-    marginTop: -BUMP - 8,
+    marginTop: -BUMP - 12,
+    borderWidth: 5,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
