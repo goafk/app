@@ -1,4 +1,10 @@
-# afk (mobile app)
+# afk — the phone app
+
+The afk app for Android (iPhone coming): Zed's agent panel on your phone. It talks to the
+**afk hub** running on your computer — install that first: [goafk/hub](https://github.com/goafk/hub)
+(`curl -fsSL https://goafk.dev/install.sh | sh`), then pair with the QR code it prints.
+
+Website: [goafk.dev](https://goafk.dev) · Hub: [goafk/hub](https://github.com/goafk/hub)
 
 Expo app that mirrors Zed's agent **Threads sidebar** and **thread view** from the afk hub on
 your Mac: the same projects in the same order, every thread with its agent icon and age, full
