@@ -36,6 +36,8 @@ export type QueuedMessage = { id: string; text: string; images: number; createdA
 export type ThreadStatus = "idle" | "running" | "needs_permission" | "offline" | "unsynced";
 
 export type SidebarThread = {
+  /** Started from the phone while the Mac was locked: not in Zed's sidebar. */
+  phoneOnly?: boolean;
   unread?: boolean;
   preview?: string;
   archived?: boolean;
@@ -55,7 +57,8 @@ export type SidebarThread = {
   cwd: string;
 };
 
-export type Project = { name: string; path: string; paths: string[]; expanded: boolean; threads: SidebarThread[] };
+export type PendingThread = { id: string; prompt?: string; agentName: string; createdAt: number };
+export type Project = { name: string; path: string; paths: string[]; expanded: boolean; threads: SidebarThread[]; /** Waiting to start in Zed once the Mac unlocks. */ pending?: PendingThread[] };
 
 export type ThreadDetail = SidebarThread & {
   entries: Entry[];
@@ -145,6 +148,10 @@ export function makeApi(conn: Conn) {
     testPush: (token: string) => call<{ ok: boolean; error?: string }>("POST", "/devices/test", { token }),
     info: () => call<{ id: string; name: string; version: string }>("GET", "/info"),
     newThread: (cwd: string, agentId: string, prompt?: string) => call<SidebarThread>("POST", "/threads", { cwd, agentId, prompt }),
+    /** While the Mac is locked: start now without Zed ("phone"), or queue it for when it unlocks. */
+    newThreadLocked: (cwd: string, agentId: string, mode: "phone" | "when_unlocked", prompt?: string) =>
+      call<SidebarThread & { queued?: PendingThread }>("POST", "/threads", { cwd, agentId, prompt, mode }),
+    cancelPending: (id: string) => call("POST", `/threads/pending/${encodeURIComponent(id)}/cancel`),
   };
 }
 

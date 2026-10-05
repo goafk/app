@@ -54,6 +54,7 @@ export function ThreadRow({ th, t, selected, subtitle, preview, now, onOpen, onM
       <Text style={[st.age, { color: waiting ? t.warning : t.muted }]}>
         {waiting ? "Waiting for input · " : th.status === "running" ? "Generating · " : ""}
         {th.archived ? "Archived · " : ""}
+        {th.phoneOnly ? "Phone only · " : ""}
         {subtitle ? `${subtitle} · ` : ""}
         {age(th.updatedAt, now)}
       </Text>

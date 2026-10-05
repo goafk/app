@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import type { Project, SearchHit, SidebarThread } from "../lib/api";
+import type { PendingThread, Project, SearchHit, SidebarThread } from "../lib/api";
 import { useStore } from "../lib/store";
 import { ui, useTheme } from "../lib/theme";
 import type { Theme } from "../lib/theme";
@@ -21,7 +21,8 @@ type Row =
   | { type: "project"; key: string; project: Project; open: boolean }
   | { type: "thread"; key: string; thread: SidebarThread; project: Project }
   | { type: "empty"; key: string }
-  | { type: "more"; key: string; project: Project; remaining: number };
+  | { type: "more"; key: string; project: Project; remaining: number }
+  | { type: "waiting"; key: string; project: Project; item: PendingThread };
 
 /** Threads shown per open project before "Show more". */
 const PAGE = 10;
@@ -48,6 +49,7 @@ export function Sidebar({ onOpen, onOpenHit, onNewThread, onSettings, onToggleSi
   const [shown, setShown] = useState<Record<string, number>>({});
   const [projectMenu, setProjectMenu] = useState<Project | null>(null);
   const [reordering, setReordering] = useState(false);
+  const [cancelWaiting, setCancelWaiting] = useState<PendingThread | null>(null);
   const move = (path: string, to: number | "top") => {
     const list = projects.map((p) => p.path);
     const from = list.indexOf(path);
@@ -120,6 +122,7 @@ export function Sidebar({ onOpen, onOpenHit, onNewThread, onSettings, onToggleSi
       const open = needle ? true : !!expanded[p.path];
       out.push({ type: "project", key: `p:${p.path}`, project: p, open });
       if (!open) continue;
+      for (const w of needle ? [] : p.pending ?? []) out.push({ type: "waiting", key: `w:${w.id}`, project: p, item: w });
       if (!matches.length) out.push({ type: "empty", key: `e:${p.path}` });
       // Long projects: the newest few, then "Show more" (searching shows every match).
       const limit = needle ? matches.length : shown[p.path] ?? PAGE;
@@ -195,6 +198,17 @@ export function Sidebar({ onOpen, onOpenHit, onNewThread, onSettings, onToggleSi
           ) : (
             actions
           )}
+        </Pressable>
+      );
+    }
+    if (item.type === "waiting") {
+      return (
+        <Pressable onPress={() => setCancelWaiting(item.item)} style={({ pressed }) => [s.waiting, { backgroundColor: phone ? t.surface : t.sidebar }, pressed && { backgroundColor: t.hover }]} accessibilityRole="button">
+          <ClockIcon color={t.faint} size={16} />
+          <View style={{ flex: 1 }}>
+            <Text style={s.waitingTitle} numberOfLines={2}>{item.item.prompt || "New thread"}</Text>
+            <Text style={s.waitingMeta} numberOfLines={1}>{item.item.agentName} · starts when your Mac unlocks</Text>
+          </View>
         </Pressable>
       );
     }
@@ -342,6 +356,21 @@ export function Sidebar({ onOpen, onOpenHit, onNewThread, onSettings, onToggleSi
               </Pressable>
             ))
           : null}
+      </Sheet>
+      <Sheet visible={!!cancelWaiting} onClose={() => setCancelWaiting(null)} title="Waiting for your Mac">
+        <Text style={[s.menuMeta, { fontSize: t.fs(14), color: t.muted }]}>
+          {cancelWaiting?.prompt ? `“${cancelWaiting.prompt}” ` : ""}starts in Zed as soon as your Mac is unlocked.
+        </Text>
+        <Pressable
+          onPress={() => {
+            const w = cancelWaiting;
+            setCancelWaiting(null);
+            if (w) api.cancelPending(w.id).then(refresh, () => {});
+          }}
+          style={({ pressed }) => [s.menuItem, pressed && { backgroundColor: t.hover }]}
+        >
+          <Text style={[s.menuText, { color: t.error }]}>Don't start it</Text>
+        </Pressable>
       </Sheet>
       <Sheet visible={reordering} onClose={() => setReordering(false)} title="Reorder projects">
         <ScrollView style={{ maxHeight: 480 }}>
@@ -500,6 +529,9 @@ function styles(t: Theme) {
     renameBtnText: { color: t.onAccent, fontSize: t.fs(15.5), fontFamily: ui, fontWeight: "600" },
     liveDot: { width: 7, height: 7, borderRadius: 6 },
     card: { marginHorizontal: 12, marginTop: 10, backgroundColor: t.surface, borderWidth: 1, borderColor: t.border, borderRadius: 18, overflow: "hidden" },
+    waiting: { flexDirection: "row", alignItems: "center", gap: 12, paddingLeft: 16, paddingRight: 16, paddingVertical: t.sp(10) },
+    waitingTitle: { fontSize: t.fs(15), color: t.muted, fontFamily: ui, fontStyle: "italic" },
+    waitingMeta: { fontSize: t.fs(12.5), color: t.faint, fontFamily: ui, marginTop: 2 },
     more: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 46, paddingLeft: 50, paddingRight: 16 },
     moreText: { flex: 1, fontSize: t.fs(14.5), color: t.text, fontFamily: ui, fontWeight: "500" },
     moreCount: { fontSize: t.fs(13), color: t.faint, fontFamily: ui },

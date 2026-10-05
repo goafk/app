@@ -38,6 +38,15 @@ export function NewThreadSheet({ cwd, onClose, onCreated }: { cwd: string | null
     );
   }, [cwd, api]);
 
+  // The Mac's screen is locked: Zed can't start threads, so offer the two ways around it.
+  const [locked, setLocked] = useState(false);
+  const [queued, setQueued] = useState(false);
+  useEffect(() => {
+    if (cwd) {
+      setLocked(false);
+      setQueued(false);
+    }
+  }, [cwd]);
   const start = async () => {
     if (!cwd || !agentId) return;
     setBusy(true);
@@ -46,7 +55,24 @@ export function NewThreadSheet({ cwd, onClose, onCreated }: { cwd: string | null
       const th = await api.newThread(cwd, agentId, prompt.trim() || undefined);
       onCreated(th);
     } catch (e: any) {
-      setErr(e.message);
+      if (e.code === "locked") setLocked(true);
+      else setErr(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const startLocked = async (mode: "phone" | "when_unlocked") => {
+    if (!cwd || !agentId) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      const r = await api.newThreadLocked(cwd, agentId, mode, prompt.trim() || undefined);
+      if (mode === "when_unlocked") {
+        setQueued(true);
+        setTimeout(onClose, 1400);
+      } else onCreated(r);
+    } catch (e: any) {
+      setErr(/outdated|reopen Zed/i.test(`${e.code} ${e.message}`) ? e.message : e.message);
     } finally {
       setBusy(false);
     }
@@ -73,16 +99,42 @@ export function NewThreadSheet({ cwd, onClose, onCreated }: { cwd: string | null
         />
       </View>
       {err ? <Text style={s.err}>{err}</Text> : null}
-      <Text style={s.hint}>Zed opens the project and starts the thread on your Mac.</Text>
-      <Pressable onPress={start} disabled={busy || !agentId} style={[s.primary, (busy || !agentId) && { opacity: 0.5 }]}>
-        {busy ? <ActivityIndicator color={t.onAccent} size="small" /> : <Text style={s.primaryText}>Start thread</Text>}
-      </Pressable>
+      {queued ? (
+        <Text style={[s.hint, { color: t.success, fontSize: t.fs(14.5) }]}>Queued. It starts in Zed as soon as your Mac is unlocked, and you'll get a notification.</Text>
+      ) : locked ? (
+        <View style={s.lockedBox}>
+          <Text style={s.lockedTitle}>Your Mac's screen is locked</Text>
+          <Text style={s.lockedBody}>Zed can't start a thread until it's unlocked. Choose how to go on:</Text>
+          <Pressable onPress={() => startLocked("phone")} disabled={busy} style={({ pressed }) => [s.choice, pressed && { backgroundColor: t.hover }]}>
+            <Text style={s.choiceTitle}>Start now from the phone</Text>
+            <Text style={s.choiceBody}>The agent starts right away. The thread lives in afk and won't appear in Zed's sidebar.</Text>
+          </Pressable>
+          <Pressable onPress={() => startLocked("when_unlocked")} disabled={busy} style={({ pressed }) => [s.choice, pressed && { backgroundColor: t.hover }]}>
+            <Text style={s.choiceTitle}>Start when the Mac unlocks</Text>
+            <Text style={s.choiceBody}>Starts in Zed as usual once you unlock it, and you'll get a notification.</Text>
+          </Pressable>
+          {busy ? <ActivityIndicator color={t.faint} style={{ marginTop: 6 }} /> : null}
+        </View>
+      ) : (
+        <>
+          <Text style={s.hint}>Zed opens the project and starts the thread on your Mac.</Text>
+          <Pressable onPress={start} disabled={busy || !agentId} style={[s.primary, (busy || !agentId) && { opacity: 0.5 }]}>
+            {busy ? <ActivityIndicator color={t.onAccent} size="small" /> : <Text style={s.primaryText}>Start thread</Text>}
+          </Pressable>
+        </>
+      )}
     </Sheet>
   );
 }
 
 function styles(t: Theme) {
   return StyleSheet.create({
+    lockedBox: { marginHorizontal: 18, marginTop: 10, gap: 8 },
+    lockedTitle: { fontSize: t.fs(16), color: t.text, fontFamily: ui, fontWeight: "600" },
+    lockedBody: { fontSize: t.fs(13.5), color: t.muted, fontFamily: ui, lineHeight: t.fs(19) },
+    choice: { borderWidth: 1, borderColor: t.border, borderRadius: 14, padding: 14, gap: 4 },
+    choiceTitle: { fontSize: t.fs(15.5), color: t.text, fontFamily: ui, fontWeight: "600" },
+    choiceBody: { fontSize: t.fs(13), color: t.muted, fontFamily: ui, lineHeight: t.fs(18) },
     navRow: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 52, paddingHorizontal: 18, marginBottom: 4 },
     navValue: { color: t.faint, fontSize: t.fs(14), fontFamily: ui, maxWidth: 190 },
     row: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 18, paddingVertical: 12 },
