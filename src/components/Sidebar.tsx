@@ -7,7 +7,9 @@ import type { PendingThread, Project, SearchHit, SidebarThread } from "../lib/ap
 import { useStore } from "../lib/store";
 import { ui, useTheme } from "../lib/theme";
 import type { Theme } from "../lib/theme";
-import { BellIcon, ChevronDown, ChevronRight, FolderIcon, GitIcon, ClockIcon, GearIcon, PlusIcon, SearchIcon, SidebarIcon, WarningIcon } from "./Icons";
+import { DragList } from "./DragList";
+import { ScrollView as GHScrollView } from "react-native-gesture-handler";
+import { BellIcon, ChevronDown, ChevronRight, FolderIcon, GripIcon, GitIcon, ClockIcon, GearIcon, PlusIcon, SearchIcon, SidebarIcon, WarningIcon } from "./Icons";
 import { EmptyState } from "./EmptyState";
 import { TabBar } from "./TabBar";
 import { HubSwitcher } from "./HubSwitcher";
@@ -52,6 +54,7 @@ export function Sidebar({ onOpen, onOpenHit, onNewThread, onSettings, onToggleSi
   const [shown, setShown] = useState<Record<string, number>>({});
   const [projectMenu, setProjectMenu] = useState<Project | null>(null);
   const [reordering, setReordering] = useState(false);
+  const [dragOn, setDragOn] = useState(false);
   const [cancelWaiting, setCancelWaiting] = useState<PendingThread | null>(null);
   const move = (path: string, to: number | "top") => {
     const list = projects.map((p) => p.path);
@@ -377,21 +380,27 @@ export function Sidebar({ onOpen, onOpenHit, onNewThread, onSettings, onToggleSi
         </Pressable>
       </Sheet>
       <Sheet visible={reordering} onClose={() => setReordering(false)} title="Reorder projects">
-        <ScrollView style={{ maxHeight: 480 }}>
-          {projects.map((p, i) => (
-            <View key={p.path} style={s.orderRow}>
-              <Text style={s.orderName} numberOfLines={1}>{p.name}</Text>
-              <Pressable disabled={i === 0} onPress={() => move(p.path, i - 1)} hitSlop={6} style={[s.orderBtn, i === 0 && { opacity: 0.3 }]} accessibilityLabel={`Move ${p.name} up`}>
-                <View style={{ transform: [{ rotate: "180deg" }] }}>
-                  <ChevronDown color={t.text} size={18} />
-                </View>
-              </Pressable>
-              <Pressable disabled={i === projects.length - 1} onPress={() => move(p.path, i + 1)} hitSlop={6} style={[s.orderBtn, i === projects.length - 1 && { opacity: 0.3 }]} accessibilityLabel={`Move ${p.name} down`}>
-                <ChevronDown color={t.text} size={18} />
-              </Pressable>
-            </View>
-          ))}
-        </ScrollView>
+        <GHScrollView style={{ maxHeight: 480 }} scrollEnabled={!dragOn}>
+          <DragList
+            items={projects}
+            keyOf={(p) => p.path}
+            rowHeight={52}
+            onDragChange={setDragOn}
+            onReorder={(keys) => setOrder([...keys, ...hiddenProjects.map((p) => p.path)])}
+            renderHandle={() => (
+              <View style={s.grip} accessibilityLabel="Drag to reorder">
+                <GripIcon color={t.faint} size={20} />
+              </View>
+            )}
+            renderRow={(p, handle, dragging) => (
+              <View style={[s.orderRow, { backgroundColor: dragging ? t.surface : t.surface }, dragging && s.orderRowOn]}>
+                <Text style={s.orderName} numberOfLines={1}>{p.name}</Text>
+                {handle}
+              </View>
+            )}
+          />
+        </GHScrollView>
+        <Text style={s.menuMeta}>Drag ≡ to reorder.</Text>
         {order ? (
           <Pressable onPress={() => setOrder(null)} style={({ pressed }) => [s.menuItem, pressed && { backgroundColor: t.hover }]}>
             <Text style={[s.menuText, { color: t.muted }]}>Reset to Zed's order</Text>
@@ -553,8 +562,10 @@ function styles(t: Theme) {
     more: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 46, paddingLeft: 50, paddingRight: 16 },
     moreText: { flex: 1, fontSize: t.fs(14.5), color: t.text, fontFamily: ui, fontWeight: "500" },
     moreCount: { fontSize: t.fs(13), color: t.faint, fontFamily: ui },
-    orderRow: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 52, paddingLeft: 18, paddingRight: 12 },
+    orderRow: { flexDirection: "row", alignItems: "center", gap: 6, height: 52, paddingLeft: 18, paddingRight: 12 },
     orderName: { flex: 1, fontSize: t.fs(16), color: t.text, fontFamily: ui },
+    grip: { width: 48, height: 52, alignItems: "center", justifyContent: "center", marginRight: -8 },
+    orderRowOn: { borderRadius: 12, marginHorizontal: 6 },
     orderBtn: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: t.optionBg },
     hitsHead: { fontSize: t.fs(13), color: t.muted, fontFamily: ui, fontWeight: "500", marginTop: 18, marginBottom: 2, marginHorizontal: 16 },
     hit: { paddingHorizontal: 16, paddingVertical: t.sp(12), gap: 4 },

@@ -52,6 +52,8 @@ export function AgentIcon({ kind, ...p }: P & { kind: string }) {
 }
 
 export const PlusIcon = (p: P) => (<S {...p}><Path d="M12 5v14M5 12h14" /></S>);
+/** Drag handle (≡). */
+export const GripIcon = (p: P) => (<S {...p}><Path d="M5 8h14M5 12h14M5 16h14" /></S>);
 export const ChevronDown = (p: P) => (<S {...p}><Path d="M7 10l5 5 5-5" /></S>);
 export const ChevronRight = (p: P) => (<S {...p}><Path d="M10 7l5 5-5 5" /></S>);
 export const ChevronLeft = (p: P) => (<S {...p}><Path d="M15 6l-6 6 6 6" /></S>);
