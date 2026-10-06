@@ -54,7 +54,7 @@ you in the loop while you're away from the keyboard:
 
 | | |
 | --- | --- |
-| **Android** | Coming soon to Google Play (and as a direct APK download) |
+| **Android** | [Download the APK](https://github.com/goafk/app/releases/latest/download/afk.apk) (latest release). Google Play coming soon |
 | **iPhone** | Coming soon to the App Store |
 
 Get notified when it lands in the stores at [goafk.dev](https://goafk.dev/#notify).
