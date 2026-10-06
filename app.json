@@ -16,6 +16,9 @@
           "NSAllowsLocalNetworking": true
         },
         "NSLocalNetworkUsageDescription": "Connects to the afk hub on your Mac."
+      },
+      "config": {
+        "usesNonExemptEncryption": false
       }
     },
     "android": {
@@ -91,7 +94,7 @@
             },
             {
               "name": "AgentsLarge",
-              "label": "Zed agents \u00b7 large",
+              "label": "Zed agents · large",
               "description": "Up to five threads, plus the inbox",
               "minWidth": "290dp",
               "minHeight": "250dp",
@@ -137,7 +140,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "afk uses the camera to scan the pairing code shown on your Mac.",
+          "cameraPermission": "afk uses the camera to scan the pairing code shown on your Mac, and to take photos you send to your agent.",
           "microphonePermission": false,
           "recordAudioAndroid": false
         }
@@ -153,6 +156,19 @@
             "image": "./assets/splash-icon-dark.png",
             "backgroundColor": "#111315"
           }
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "afk lets you attach screenshots and photos to a message for your agent.",
+          "cameraPermission": "afk uses the camera to take a photo to send to your agent."
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "afk can use Face ID to lock the app, so only you can approve what your agents do."
         }
       ]
     ],
