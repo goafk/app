@@ -13,7 +13,7 @@ import { TabBar } from "./TabBar";
 import { HubSwitcher } from "./HubSwitcher";
 import { age } from "../lib/time";
 import { savedAtLabel } from "../lib/offline";
-import { applyOrder, useProjectOrder } from "../lib/projectOrder";
+import { applyOrder, isHidden, useHiddenProjects, useProjectOrder } from "../lib/projectOrder";
 import { Sheet } from "./Sheet";
 import { ThreadRow } from "./ThreadRow";
 
@@ -45,7 +45,10 @@ export function Sidebar({ onOpen, onOpenHit, onNewThread, onSettings, onToggleSi
   const { projects: zedProjects, expanded, toggle, selected, error, live, refresh, api, activeHost, conn, offlineSince } = useStore();
   // The user's own project order (per computer), and how many threads each open project shows.
   const { order, setOrder } = useProjectOrder(activeHost?.id ?? conn.url);
-  const projects = useMemo(() => applyOrder(zedProjects, order), [zedProjects, order]);
+  const { hidden, hide, unhide } = useHiddenProjects(activeHost?.id ?? conn.url);
+  const ordered = useMemo(() => applyOrder(zedProjects, order), [zedProjects, order]);
+  const projects = useMemo(() => ordered.filter((p) => !isHidden(p, hidden)), [ordered, hidden]);
+  const hiddenProjects = useMemo(() => ordered.filter((p) => isHidden(p, hidden)), [ordered, hidden]);
   const [shown, setShown] = useState<Record<string, number>>({});
   const [projectMenu, setProjectMenu] = useState<Project | null>(null);
   const [reordering, setReordering] = useState(false);
@@ -350,6 +353,7 @@ export function Sidebar({ onOpen, onOpenHit, onNewThread, onSettings, onToggleSi
               ...(onReviewChanges ? [{ label: "Review changes", run: () => onReviewChanges(projectMenu) }] : []),
               ...(projects[0]?.path !== projectMenu.path ? [{ label: "Move to top", run: () => move(projectMenu.path, "top") }] : []),
               { label: "Reorder projects…", run: () => setTimeout(() => setReordering(true), 280) },
+              { label: "Remove from afk", run: () => hide(projectMenu.path) },
             ].map((a) => (
               <Pressable key={a.label} onPress={() => { setProjectMenu(null); a.run(); }} style={({ pressed }) => [s.menuItem, pressed && { backgroundColor: t.hover }]}>
                 <Text style={s.menuText}>{a.label}</Text>
@@ -394,6 +398,20 @@ export function Sidebar({ onOpen, onOpenHit, onNewThread, onSettings, onToggleSi
           </Pressable>
         ) : null}
         <Text style={s.menuMeta}>The order is kept on this phone, for this computer. New projects appear at the top.</Text>
+        {hiddenProjects.length ? (
+          <>
+            <Text style={[s.menuMeta, { color: t.muted, fontWeight: "600", paddingTop: 12 }]}>Removed from afk</Text>
+            {hiddenProjects.map((p) => (
+              <View key={p.path} style={s.orderRow}>
+                <Text style={[s.orderName, { color: t.muted }]} numberOfLines={1}>{p.name}</Text>
+                <Pressable onPress={() => unhide(p.path)} hitSlop={6} style={[s.orderBtn, { width: undefined, paddingHorizontal: 14 }]} accessibilityLabel={`Show ${p.name} again`}>
+                  <Text style={[s.menuText, { fontSize: t.fs(14) }]}>Show</Text>
+                </Pressable>
+              </View>
+            ))}
+            <Text style={s.menuMeta}>Removed projects come back by themselves when a thread there is active again. Zed isn't changed.</Text>
+          </>
+        ) : null}
       </Sheet>
       <Sheet visible={picking} onClose={() => setPicking(false)} title="New thread in…">
         {recentProjects.map((p) => (
