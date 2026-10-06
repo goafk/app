@@ -12,6 +12,7 @@ import { ScrollView as GHScrollView } from "react-native-gesture-handler";
 import { BellIcon, ChevronDown, ChevronRight, FolderIcon, GripIcon, GitIcon, ClockIcon, GearIcon, PlusIcon, SearchIcon, SidebarIcon, WarningIcon } from "./Icons";
 import { EmptyState } from "./EmptyState";
 import { TabBar } from "./TabBar";
+import { DemoBanner } from "./DemoBanner";
 import { HubSwitcher } from "./HubSwitcher";
 import { age } from "../lib/time";
 import { savedAtLabel } from "../lib/offline";
@@ -259,6 +260,7 @@ export function Sidebar({ onOpen, onOpenHit, onNewThread, onSettings, onToggleSi
   return (
     <View style={[s.root, phone && s.rootPhone, { paddingTop: insets.top }]}>
       <HubSwitcher header={phone} />
+      <DemoBanner phone={phone} />
       <View style={[s.searchBar, phone && s.searchPill]}>
         <SearchIcon color={t.faint} size={17} />
         <TextInput

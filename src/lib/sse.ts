@@ -5,12 +5,15 @@
 // stream is treated as dead when nothing — not even the hub's ping — arrives for STALL_MS, and the
 // app can force a reconnect (e.g. when it returns to the foreground).
 
+import { demoSubscribe, isDemo } from "./demo/hub";
+
 export type HubEvent = { type: string; threadId: string; data: any };
 export type Subscription = { close: () => void; reconnect: () => void };
 
 const STALL_MS = 35_000;
 
 export function subscribe(base: string, token: string, onEvent: (e: HubEvent) => void, onState: (connected: boolean) => void): Subscription {
+  if (isDemo(base)) return demoSubscribe(onEvent, onState);
   let xhr: XMLHttpRequest | null = null;
   let closed = false;
   let retry: ReturnType<typeof setTimeout> | null = null;

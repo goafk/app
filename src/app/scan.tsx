@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { DEMO_HOST_ID, DEMO_URL, resetDemo } from "../lib/demo/hub";
 import { parsePairLink } from "../lib/hosts";
 import { useStore } from "../lib/store";
 import { mono, ui, useTheme } from "../lib/theme";
@@ -17,7 +18,18 @@ const INSTALL_COMMAND: string | null = "curl -fsSL https://goafk.dev/install.sh 
 export default function Scan() {
   const t = useTheme();
   const insets = useSafeAreaInsets();
-  const { hosts } = useStore();
+  const { hosts, addHost, switchHost } = useStore();
+  const inDemo = hosts.some((h) => h.id === DEMO_HOST_ID);
+
+  // A pretend Mac with sample projects, for trying afk before installing anything.
+  const demo = async () => {
+    if (inDemo) switchHost(DEMO_HOST_ID);
+    else {
+      resetDemo();
+      await addHost({ id: DEMO_HOST_ID, name: "Demo Mac", urls: [DEMO_URL], lastUrl: DEMO_URL, key: "demo", addedAt: Date.now(), customName: true });
+    }
+    router.replace("/");
+  };
   const [perm, requestPerm] = useCameraPermissions();
   const [msg, setMsg] = useState<string | null>(null);
   const handled = useRef(false);
@@ -88,6 +100,12 @@ export default function Scan() {
           <Text style={[st.linkText, { color: t.muted }]}>Enter address manually</Text>
         </Pressable>
       </View>
+      {first || inDemo ? (
+        <Pressable onPress={demo} style={[st.demo, { borderColor: t.border }]} accessibilityRole="button">
+          <Text style={[st.linkText, { color: t.text }]}>No Mac handy? Try the demo</Text>
+          <Text style={[st.hint, { color: t.faint }]}>Sample projects, nothing to install</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -108,4 +126,5 @@ const st = StyleSheet.create({
   row: { flexDirection: "row", justifyContent: "space-between" },
   link: { minHeight: 44, justifyContent: "center" },
   linkText: { fontSize: 15, fontFamily: ui, fontWeight: "500" },
+  demo: { minHeight: 56, borderWidth: 1, borderRadius: 14, alignItems: "center", justifyContent: "center", gap: 2, paddingVertical: 8 },
 });

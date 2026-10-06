@@ -3,6 +3,7 @@
 // we remember the one that last worked and fall back to the others.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Conn } from "./api";
+import { isDemo } from "./demo/hub";
 
 export type Host = {
   /** The hub's id from /info (or "local" for a connection entered by hand before pairing existed). */
@@ -58,6 +59,7 @@ export async function activeConn(): Promise<Conn> {
 }
 
 async function answers(url: string, key: string, timeoutMs: number): Promise<boolean> {
+  if (isDemo(url)) return true;
   const ctl = new AbortController();
   const tm = setTimeout(() => ctl.abort(), timeoutMs);
   try {
@@ -88,6 +90,7 @@ export async function resolveUrl(h: Host, timeoutMs = 3500): Promise<string | un
 
 /** Any HTTP answer (even 401) means a hub is listening there. */
 export async function listening(url: string, timeoutMs = 4000): Promise<boolean> {
+  if (isDemo(url)) return true;
   const ctl = new AbortController();
   const tm = setTimeout(() => ctl.abort(), timeoutMs);
   try {

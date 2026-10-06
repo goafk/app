@@ -5,6 +5,7 @@ export type UsageThread = { id: string; title: string; cwd: string; status: stri
 export type UsageSummary = { currency: string; today: number; days: Array<{ day: string; cost: number }>; threads: UsageThread[] };
 // Client for the afk hub HTTP API.
 import { Platform } from "react-native";
+import { demoFetch, isDemo } from "./demo/hub";
 import { activeConn } from "./hosts";
 
 export type ConfigOption = {
@@ -109,7 +110,8 @@ export function makeApi(conn: Conn) {
   async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
     let r: Response;
     try {
-      r = await fetch(base + path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+      const init = { method, headers, body: body === undefined ? undefined : JSON.stringify(body) };
+      r = isDemo(base) ? ((await demoFetch(base + path, init)) as unknown as Response) : await fetch(base + path, init);
     } catch (e: any) {
       throw new ApiError(0, "network", `Can't reach the hub at ${base || "(not set)"}`);
     }
