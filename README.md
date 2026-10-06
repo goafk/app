@@ -16,6 +16,12 @@
 </p>
 
 <p align="center">
+  <a href="https://goafk.dev/#film"><img alt="afk in 12 seconds: Zed's agent asks for permission, your phone buzzes, you tap Allow, and every thread is in your pocket" src="https://goafk.dev/assets/film/afk-film.gif" width="760"></a>
+  <br>
+  <sub><a href="https://goafk.dev/#film">▶ Watch the full 35-second film, with sound</a></sub>
+</p>
+
+<p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://goafk.dev/assets/shots/sidebar-dark-sm.webp">
     <img alt="Your projects and threads" src="https://goafk.dev/assets/shots/sidebar-light-sm.webp" width="240">
