@@ -64,6 +64,32 @@ function upsert(id: string, entry: Entry) {
 
 const nextSeq = (id: string) => Math.max(0, ...w().details[id]?.entries.map((e) => e.seq) ?? [0]) + 1;
 
+/** Puts the thread in Android's live progress (status-bar chip), exactly as a real hub's push would. */
+function live(id: string, state: "working" | "waiting" | "done", step?: string, done?: number, total?: number) {
+  const t = row(id);
+  if (!t) return;
+  // Required lazily: notifyActions -> api -> demo/hub would otherwise be a cycle at startup.
+  const { showProgress } = require("../notifyActions") as typeof import("../notifyActions");
+  showProgress({
+    kind: "progress",
+    hubId: DEMO_HOST_ID,
+    hubName: "Demo Mac",
+    threadId: id,
+    title: t.title,
+    project: t.cwd.split("/").pop() ?? "",
+    running: state !== "done",
+    step: state === "waiting" ? "Waiting for you" : step,
+    done,
+    total,
+  }).catch(() => {});
+}
+
+/** Takes the demo's live progress off the status bar (when leaving the demo). */
+export function stopDemoLive() {
+  const { afkLive } = require("../../../modules/afk-live") as typeof import("../../../modules/afk-live");
+  for (const t of world ? rows() : []) afkLive()?.dismiss(`progress:${DEMO_HOST_ID}:${t.id}`);
+}
+
 /** Runs steps one after another, each `ms` after the previous. */
 function script(steps: Array<[number, () => void]>) {
   let at = 0;
@@ -92,6 +118,7 @@ function respond(id: string, text: string, echo = true) {
   if (echo) upsert(id, { seq, kind: "user", text });
   update(id, { status: "running", preview: undefined });
   const tool = fileFor(t);
+  live(id, "working", `Editing ${tool}`);
   script([
     [700, () => upsert(id, { seq: seq + 1, kind: "thought", text: "Reading the relevant code first." })],
     [800, () => upsert(id, { seq: seq + 2, kind: "tool_call", toolCallId: `x${seq}`, title: `Edit ${tool}`, status: "in_progress", data: { kind: "edit" } })],
@@ -101,6 +128,7 @@ function respond(id: string, text: string, echo = true) {
       () => {
         upsert(id, { seq: seq + 3, kind: "agent", text: replyText(text) });
         update(id, { status: "idle", unread: true, preview: "Done." });
+        live(id, "done");
         emit("sidebar.changed", "");
         afterIdle(id);
       },
@@ -113,7 +141,7 @@ function afterIdle(id: string) {
   const d = w().details[id];
   const next = d?.queued?.shift();
   if (!next) return;
-  setTimeout(() => respond(id, next.text), 900);
+  setTimeout(() => respond(id, next.text), 5000); // after the "Done" moment
 }
 
 let started = false;
@@ -121,13 +149,22 @@ let started = false;
 function startScripts() {
   if (started) return;
   started = true;
+  live("t-dark", "working", "Wire theme into ThemeProvider", 2, 4);
+  live("t-stripe", "waiting");
   script([
-    [7000, () => upsert("t-dark", { seq: 7, kind: "tool_call", toolCallId: "c3", title: "Edit src/theme/ThemeProvider.tsx", status: "completed", data: { kind: "edit" } })],
+    [
+      7000,
+      () => {
+        upsert("t-dark", { seq: 7, kind: "tool_call", toolCallId: "c3", title: "Edit src/theme/ThemeProvider.tsx", status: "completed", data: { kind: "edit" } });
+        live("t-dark", "working", "Persist choice and respect system setting", 3, 4);
+      },
+    ],
     [
       2500,
       () => {
         upsert("t-dark", { seq: 8, kind: "agent", text: "Dark mode is in. The toggle follows the system by default, and the choice survives restarts. Snapshot tests pass for both themes." });
         update("t-dark", { status: "idle", unread: true, preview: "Dark mode is in." });
+        live("t-dark", "done", undefined, 4, 4);
         emit("sidebar.changed", "");
         afterIdle("t-dark");
       },
@@ -258,9 +295,11 @@ function permission(id: string, optionId: string) {
     upsert(id, { seq: 4, kind: "tool_call", toolCallId: "s2", title: "npm test -- billing --coverage", status: "failed", data: { kind: "execute" } });
     upsert(id, { seq: 5, kind: "agent", text: "OK, I won't run the tests. The migration is done; run `npm test -- billing` yourself when you're ready." });
     update(id, { status: "idle" });
+    live(id, "done");
     return;
   }
   update(id, { status: "running" });
+  live(id, "working", "npm test -- billing --coverage");
   script([
     [300, () => upsert(id, { seq: 4, kind: "tool_call", toolCallId: "s2", title: "npm test -- billing --coverage", status: "in_progress", data: { kind: "execute" } })],
     [
@@ -280,6 +319,7 @@ function permission(id: string, optionId: string) {
       () => {
         upsert(id, { seq: 5, kind: "agent", text: "All **64 billing tests pass** (94% coverage). The webhook payloads are byte-for-byte the same as before, so nothing downstream changes." });
         update(id, { status: "idle", unread: true });
+        live(id, "done");
         emit("sidebar.changed", "");
       },
     ],

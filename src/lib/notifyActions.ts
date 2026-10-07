@@ -94,20 +94,17 @@ export async function showProgress(p: ProgressPush): Promise<void> {
   const live = afkLive();
   if (live) {
     try {
-      if (!p.running) live.dismiss(identifier);
+      const promote = await liveInStatusBar();
+      const url = `zedthreads://thread/${encodeURIComponent(p.threadId)}`;
+      const sub = p.hubName ? `${p.project} · ${p.hubName}` : p.project;
+      if (!p.running) live.finish(identifier, { title: p.title, text: "Finished", sub, total: p.total ?? 0, url, promote });
       else {
         const waiting = p.step === "Waiting for you";
-        const chip = waiting ? "Needs you" : p.total ? `${p.done ?? 0}/${p.total}` : "Working";
-        live.show(
-          identifier,
-          `${p.hubName ? `${p.hubName} · ` : ""}${p.project} · ${p.title}`,
-          p.step ?? "Working…",
-          chip,
-          p.done ?? 0,
-          p.total ?? 0,
-          `zedthreads://thread/${encodeURIComponent(p.threadId)}`,
-          await liveInStatusBar(),
-        );
+        const total = p.total ?? 0;
+        const done = Math.min(p.done ?? 0, total);
+        const step = p.step ?? "Working…";
+        const text = waiting ? "Waiting for you" : total ? `Step ${Math.min(done + 1, total)} of ${total} · ${step}` : step;
+        live.show(identifier, { title: p.title, text, sub, chip: waiting ? "Needs you" : "", done, total, url, promote, state: waiting ? "waiting" : "working" });
       }
       return;
     } catch {

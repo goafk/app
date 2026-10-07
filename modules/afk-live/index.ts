@@ -5,7 +5,10 @@ import { Platform } from "react-native";
 type AfkLive = {
   supported(): boolean;
   canPromote(): boolean;
-  show(key: string, title: string, text: string, chip: string, done: number, total: number, url: string, promote: boolean): boolean;
+  /** Working or waiting. `sub` sits in the header ("project · Mac"); an empty `chip` shows the running timer. */
+  show(key: string, o: { title: string; text: string; sub: string; chip: string; done: number; total: number; url: string; promote: boolean; state: "working" | "waiting" }): boolean;
+  /** The run ended: green "Done" for a few seconds, then it goes away. */
+  finish(key: string, o: { title: string; text: string; sub: string; total: number; url: string; promote: boolean }): void;
   dismiss(key: string): void;
   dismissAll(): void;
   openSettings(): void;

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The afk mark in a light disc: slides along the Live Update progress bar. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="1000" android:viewportHeight="1000">
+  <path android:fillColor="#F5F5F3" android:pathData="M500,0 A500,500 0 1,1 499.9,0 Z" />
+  <group android:scaleX="0.8" android:scaleY="0.8" android:translateX="-85" android:translateY="34">
+    <path android:fillColor="#8C929A" android:pathData="M653,751 A125,125 0 1,1 403,751 A125,125 0 1,1 653,751 Z" />
+    <path android:fillColor="#111315" android:pathData="M567,426 A95,95 0 0,1 729,328 L1049,855 Q1062,876 1037,876 L888,876 Q840,876 812,830 Z" />
+  </group>
+</vector>

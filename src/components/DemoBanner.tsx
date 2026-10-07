@@ -2,7 +2,7 @@
 import { router } from "expo-router";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { DEMO_HOST_ID, isDemo } from "../lib/demo/hub";
+import { DEMO_HOST_ID, isDemo, stopDemoLive } from "../lib/demo/hub";
 import { useStore } from "../lib/store";
 import { ui, useTheme } from "../lib/theme";
 
@@ -19,7 +19,7 @@ export function DemoBanner({ phone }: { phone: boolean }) {
         <Pressable onPress={() => router.push("/scan")} hitSlop={6} style={st.btn} accessibilityRole="button">
           <Text style={[st.btnText, { color: t.accent, fontSize: t.fs(14) }]}>Connect my Mac</Text>
         </Pressable>
-        <Pressable onPress={() => removeHost(DEMO_HOST_ID).then(() => router.replace("/scan"))} hitSlop={6} style={st.btn} accessibilityRole="button">
+        <Pressable onPress={() => { stopDemoLive(); removeHost(DEMO_HOST_ID).then(() => router.replace("/scan")); }} hitSlop={6} style={st.btn} accessibilityRole="button">
           <Text style={[st.btnText, { color: t.muted, fontSize: t.fs(14) }]}>Leave demo</Text>
         </Pressable>
       </View>
