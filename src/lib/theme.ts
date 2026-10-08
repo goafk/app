@@ -33,6 +33,9 @@ export type Theme = {
   scrim: string;
   diffAdd: string;
   diffDel: string;
+  /** Stronger shades for the words that changed within a line. */
+  diffAddStrong: string;
+  diffDelStrong: string;
   warning: string;
   error: string;
   success: string;
@@ -147,6 +150,8 @@ export function buildTheme(name: string, p: Palette, a: Appearance): Theme {
     scrim: p.dark ? "rgba(0,0,0,0.5)" : alpha(p.text, 0.22),
     diffAdd: alpha(p.syntax.inserted, p.dark ? 0.14 : 0.12),
     diffDel: alpha(p.syntax.deleted, p.dark ? 0.14 : 0.1),
+    diffAddStrong: alpha(p.syntax.inserted, p.dark ? 0.34 : 0.3),
+    diffDelStrong: alpha(p.syntax.deleted, p.dark ? 0.34 : 0.26),
     warning: p.warning,
     error: p.error,
     success: p.success,

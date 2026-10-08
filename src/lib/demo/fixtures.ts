@@ -145,7 +145,33 @@ export function seed(now: number): { projects: Project[]; details: Record<string
           toolCallId: "f1",
           title: "npx playwright test checkout --repeat-each=20",
           status: "completed",
-          data: { kind: "execute", content: [{ type: "content", content: { type: "text", text: "18 passed, 2 failed\n  ✘ checkout › applies discount code (timeout waiting for [data-test=total])" } }] },
+          data: {
+            kind: "execute",
+            rawInput: { command: "npx playwright test checkout --repeat-each=20", cwd: "/Users/demo/code/aurora-ui" },
+            content: [
+              {
+                type: "content",
+                content: {
+                  type: "text",
+                  text: [
+                    "Running 20 tests using 4 workers",
+                    "",
+                    "  \x1b[32m✓\x1b[0m checkout › shows the cart total \x1b[2m(812ms)\x1b[0m",
+                    "  \x1b[32m✓\x1b[0m checkout › removes an item \x1b[2m(640ms)\x1b[0m",
+                    "  \x1b[31m✘\x1b[0m checkout › applies discount code \x1b[2m(5.0s)\x1b[0m",
+                    "  \x1b[32m✓\x1b[0m checkout › pays with a saved card \x1b[2m(1.1s)\x1b[0m",
+                    "",
+                    "  \x1b[41m\x1b[1m FAILED \x1b[0m \x1b[1mcheckout › applies discount code\x1b[0m",
+                    "  Timeout 5000ms waiting for \x1b[36m[data-test=total]\x1b[0m",
+                    "    at \x1b[32mtests/checkout.spec.ts:42\x1b[0m",
+                    "",
+                    "  \x1b[31m2 failed\x1b[0m",
+                    "  \x1b[32m18 passed\x1b[0m \x1b[2m(41.2s)\x1b[0m",
+                  ].join("\n"),
+                },
+              },
+            ],
+          },
         },
         {
           seq: 3,

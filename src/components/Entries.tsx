@@ -4,6 +4,9 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-nati
 import * as Clipboard from "expo-clipboard";
 import type { Entry, PendingElicitation } from "../lib/api";
 import { DiffView } from "./Diff";
+import { FileBadge } from "./FileIcon";
+import { parseAnsi, stripAnsi } from "../lib/ansi";
+import { mix } from "../lib/themes";
 import { AskedSummary, QuestionCard } from "./Question";
 import { mono, ui, useTheme } from "../lib/theme";
 import type { Theme } from "../lib/theme";
@@ -137,30 +140,114 @@ function inputSummary(input: any): string {
   return lines.join("\n");
 }
 
+/** The file a tool call is about: the diff's path, the first location, or a path in the title. */
+function toolPath(entry: Entry, diffs: any[]): string | undefined {
+  if (diffs[0]?.path) return diffs[0].path;
+  const loc = entry.data?.locations?.[0]?.path;
+  if (loc) return loc;
+  return /[\w./-]+\.[a-z0-9]{1,6}\b/i.exec(entry.title ?? "")?.[0];
+}
+
+const isTerminal = (entry: Entry, title: string) => entry.data?.kind === "execute" || /^(bash|shell|exec|run|terminal|local_shell)\b/i.test(title);
+
+function StatusMark({ entry, t }: { entry: Entry; t: Theme }) {
+  if (entry.status === "pending" || entry.status === "in_progress") return <ActivityIndicator size="small" color={t.faint} style={{ transform: [{ scale: 0.6 }] }} />;
+  if (entry.status === "failed") return <XIcon color={t.error} size={14} />;
+  return <CheckIcon color={t.faint} size={14} />;
+}
+
 function ToolCall({ entry, s, t }: { entry: Entry; s: St; t: Theme }) {
   const title = entry.title ?? entry.data?.title ?? "Tool call";
   const diffs: any[] = (entry.data?.content ?? []).filter((c: any) => c?.type === "diff");
-  const texts = contentTexts(entry.data?.content);
-  // Edits show their diff right away, like Zed's edit cards; other tools expand on tap.
-  const [open, setOpen] = useState(diffs.length > 0);
-  const running = entry.status === "pending" || entry.status === "in_progress";
-  const failed = entry.status === "failed";
+  if (diffs.length) return <EditCard entry={entry} diffs={diffs} title={title} s={s} t={t} />;
+  if (isTerminal(entry, title)) return <TerminalCard entry={entry} title={title} s={s} t={t} />;
+  return <PlainTool entry={entry} title={title} s={s} t={t} />;
+}
+
+/** Edits, like Zed's edit card: language badge + "Edit path", then the diff. */
+function EditCard({ entry, diffs, title, s, t }: { entry: Entry; diffs: any[]; title: string; s: St; t: Theme }) {
+  const path = toolPath(entry, diffs);
+  const label = /^(edit|write|update|create|multiedit)\b/i.exec(title)?.[0] ?? "Edit";
+  return (
+    <View style={s.tool}>
+      <View style={[s.toolHead, s.cardHead]}>
+        {path ? <FileBadge path={path} size={12} /> : <ToolKindIcon title={title} color={t.muted} size={15} />}
+        <Text style={s.toolTitle} numberOfLines={2}>
+          <Text style={{ color: t.muted }}>{label} </Text>
+          <Text style={{ color: t.text }}>{path ?? title.replace(/^\S+\s*/, "")}</Text>
+        </Text>
+        <StatusMark entry={entry} t={t} />
+      </View>
+      {diffs.map((d, i) => (
+        <View key={i} style={i ? { borderTopWidth: 1, borderTopColor: t.border } : undefined}>
+          {diffs.length > 1 ? <Text style={[s.toolBody, { paddingHorizontal: 12, paddingTop: 6 }]}>{d.path}</Text> : null}
+          <DiffView path={d.path} oldText={d.oldText} newText={d.newText} header={false} />
+        </View>
+      ))}
+    </View>
+  );
+}
+
+const TAIL = 6;
+
+/** Commands, like Zed's terminal card: the command up top, output with its terminal colours. */
+function TerminalCard({ entry, title, s, t }: { entry: Entry; title: string; s: St; t: Theme }) {
+  const [open, setOpen] = useState(entry.status === "failed");
+  const raw = entry.data?.rawInput;
+  const command = String(raw?.command ?? title).replace(/^`|`$/g, "");
+  const cwd: string | undefined = raw?.cwd ?? raw?.workdir;
+  const output = contentTexts(entry.data?.content).join("\n").replace(/\s+$/, "");
+  const lines = output ? output.split("\n") : [];
+  const shown = open ? lines : lines.slice(-TAIL);
+  const spans = useMemo(() => parseAnsi(shown.join("\n"), t), [shown.join("\n"), t]);
+  return (
+    <View style={s.tool}>
+      <Pressable onPress={() => setOpen((o) => !o)} style={[s.toolHead, s.cardHead, { alignItems: "flex-start" }]}>
+        <View style={{ paddingTop: 2 }}>
+          <ToolKindIcon title="bash" color={t.muted} size={15} />
+        </View>
+        <View style={{ flex: 1, gap: 2 }}>
+          {cwd ? <Text style={s.cwd} numberOfLines={1}>{cwd.split("/").slice(-2).join("/")}</Text> : null}
+          <Text style={[s.toolTitle, { color: t.text }]} numberOfLines={open ? 8 : 3} selectable>{command}</Text>
+        </View>
+        <View style={{ paddingTop: 2 }}>
+          <StatusMark entry={entry} t={t} />
+        </View>
+      </Pressable>
+      {lines.length ? (
+        <Pressable onPress={() => setOpen((o) => !o)} style={s.term}>
+          {!open && lines.length > TAIL ? <Text style={s.termMore}>⋯ {lines.length - TAIL} earlier lines</Text> : null}
+          <Text style={s.termText} selectable={open}>
+            {spans.map((sp, i) => (
+              <Text key={i} style={{ color: sp.color ?? (sp.bg ? "#FFFFFF" : undefined), backgroundColor: sp.bg, fontWeight: sp.bold ? "700" : undefined, opacity: sp.dim ? 0.7 : undefined }}>
+                {sp.text}
+              </Text>
+            ))}
+          </Text>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
+/** Everything else (read, search, fetch, …): one line, tap for details. */
+function PlainTool({ entry, title, s, t }: { entry: Entry; title: string; s: St; t: Theme }) {
+  const [open, setOpen] = useState(false);
+  const path = toolPath(entry, []);
   const input = inputSummary(entry.data?.rawInput);
-  const output = texts.join("\n").trim();
+  const output = stripAnsi(contentTexts(entry.data?.content).join("\n")).trim();
+  const fileTool = /^(read|view|cat|file|write)\b/i.test(title);
   return (
     <View style={s.tool}>
       <Pressable onPress={() => setOpen((o) => !o)} style={s.toolHead}>
-        <ToolKindIcon title={title} color={t.muted} size={15} />
+        {fileTool && path ? <FileBadge path={path} size={12} /> : <ToolKindIcon title={title} color={t.muted} size={15} />}
         <Text style={s.toolTitle} numberOfLines={open ? 3 : 1}>{title}</Text>
-        {running ? <ActivityIndicator size="small" color={t.faint} style={{ transform: [{ scale: 0.6 }] }} /> : failed ? <XIcon color={t.error} size={14} /> : <CheckIcon color={t.faint} size={14} />}
+        <StatusMark entry={entry} t={t} />
       </Pressable>
       {open ? (
         <View style={s.toolOpen}>
-          {diffs.map((d, i) => <DiffView key={i} path={d.path} oldText={d.oldText} newText={d.newText} />)}
-          {!diffs.length && input && input !== title ? <Text style={s.toolBody} selectable numberOfLines={20}>{input}</Text> : null}
-          {output ? (
-            <Text style={[s.toolBody, s.toolOutput]} selectable numberOfLines={30}>{output}</Text>
-          ) : null}
+          {input && input !== title ? <Text style={s.toolBody} selectable numberOfLines={20}>{input}</Text> : null}
+          {output ? <Text style={[s.toolBody, s.toolOutput]} selectable numberOfLines={30}>{output}</Text> : null}
         </View>
       ) : null}
     </View>
@@ -201,6 +288,11 @@ function styles(t: Theme) {
     askHead: { flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 4, paddingTop: 8 },
     askTitle: { fontSize: t.fs(15), color: t.muted, fontFamily: ui },
     toolOpen: { paddingHorizontal: 10, paddingBottom: 10, gap: 6 },
+    cardHead: { borderBottomWidth: 1, borderBottomColor: t.border, backgroundColor: t.dark ? mix(t.toolBg, t.text, 0.04) : mix(t.toolBg, t.text, 0.03) },
+    cwd: { fontFamily: t.mono, fontSize: t.fs(11.5), color: t.faint },
+    term: { backgroundColor: t.codeBg, paddingHorizontal: 12, paddingVertical: 10, borderBottomLeftRadius: 8, borderBottomRightRadius: 8 },
+    termMore: { fontFamily: ui, fontSize: t.fs(12), color: t.faint, marginBottom: 4 },
+    termText: { fontFamily: t.mono, fontSize: t.fs(12), lineHeight: t.fs(18), color: t.text },
     toolBody: { fontFamily: t.mono, fontSize: t.fs(12), lineHeight: t.fs(18), color: t.muted },
     toolOutput: { backgroundColor: t.codeBg, borderRadius: 6, padding: 8, color: t.text },
     plan: { borderWidth: 1, borderColor: t.border, borderRadius: 10, padding: 12, marginVertical: 8 },

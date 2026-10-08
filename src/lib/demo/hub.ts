@@ -311,7 +311,11 @@ function permission(id: string, optionId: string) {
           toolCallId: "s2",
           title: "npm test -- billing --coverage",
           status: "completed",
-          data: { kind: "execute", content: [{ type: "content", content: { type: "text", text: "Tests: 64 passed, 64 total\nCoverage: 94.2% statements" } }] },
+          data: {
+            kind: "execute",
+            rawInput: { command: "npm test -- billing --coverage", cwd: "/Users/demo/code/pocket-ledger" },
+            content: [{ type: "content", content: { type: "text", text: "\x1b[1mPASS\x1b[0m src/billing/charge.test.ts\n\x1b[1mPASS\x1b[0m src/billing/refund.test.ts\n\x1b[1mPASS\x1b[0m src/jobs/renewals.test.ts\n\nTests:       \x1b[32m64 passed\x1b[0m, 64 total\nCoverage:    \x1b[32m94.2%\x1b[0m statements" } }],
+          },
         }),
     ],
     [
