@@ -1,0 +1,41 @@
+{
+  "configVersion": 0,
+  "apple": {
+    "copyright": "2026 Boldbytes Ltd",
+    "categories": [
+      "DEVELOPER_TOOLS",
+      "PRODUCTIVITY"
+    ],
+    "info": {
+      "en-US": {
+        "title": "afk – agents on your phone",
+        "subtitle": "Your coding agents, anywhere",
+        "promoText": "Your coding agents stop to ask. afk puts the question on your phone, so you can answer and they carry on.",
+        "description": "Away from keyboard, not away from control.\n\nYou run AI coding agents like Claude and Codex in the Zed editor. They work great, until they stop to ask something: \"can I run the tests?\", \"which option do you prefer?\". If you've stepped away, everything waits.\n\nafk puts your agent threads on your phone, live, and it works both ways:\n\n• Get notified when an agent needs permission, asks a question or finishes.\n• Approve, answer and reply from anywhere, even straight from the notification. The agent carries on on your computer.\n• Steer it: send messages and photos, queue the next step, switch model, mode or effort.\n• Watch it work: plans, diffs, tool calls and code, with syntax highlighting.\n• Several computers: personal and work, with one switch.\n• Lock the app with Face ID, so only you can approve what your agents do.\n\nNO ACCOUNT, NO CLOUD\nafk talks directly to the free, open-source afk hub on your Mac, over your Wi-Fi or Tailscale. Your code and threads stay on your machine. No analytics, no ads.\n\nGET STARTED\n1. On your Mac, install the hub from goafk.dev (takes about a minute).\n2. Open afk and scan the QR code it shows.\n\nNo Mac handy? Tap \"Try the demo\" to see afk with sample projects and agents.\n\nWorks with Zed on macOS, with Claude Agent and Codex. afk is an independent project and is not affiliated with Zed Industries, Anthropic or OpenAI.",
+        "keywords": [
+          "coding agent",
+          "AI agent",
+          "AI coding",
+          "developer",
+          "programming",
+          "remote",
+          "approve",
+          "notifications",
+          "LLM",
+          "agents"
+        ],
+        "marketingUrl": "https://goafk.dev",
+        "supportUrl": "https://goafk.dev/support",
+        "privacyPolicyUrl": "https://goafk.dev/privacy"
+      }
+    },
+    "review": {
+      "firstName": "Eluert",
+      "lastName": "Mukja",
+      "email": "TODO_REVIEW_EMAIL",
+      "phone": "TODO_REVIEW_PHONE",
+      "demoRequired": false,
+      "notes": "afk is a companion app for the free, open-source afk hub (https://github.com/goafk/afk), which runs on the user's own Mac next to the Zed editor. There is no account, no login and no backend of our own: the app connects directly to the user's Mac over the local network or Tailscale.\n\nTO REVIEW WITHOUT A MAC: on the first screen, tap \"No Mac handy? Try the demo\". Demo mode simulates a paired Mac with sample projects and coding agents, so every screen can be tried: the thread list, a running agent, approving a permission request, answering a question and sending a message. Tap \"Leave demo\" to exit.\n\nPermissions: the camera scans the pairing QR code shown on the Mac and takes photos the user sends to their agent; photo library access attaches screenshots; Face ID optionally locks the app; local network access reaches the user's Mac.\n\nData: messages and photos go only to the user's own computer. The app does not send data to any AI provider itself; the user's own agents on their Mac do that, under the user's own accounts. Notifications are delivered through Expo's push service and APNs.\n\nA 35-second film of the real Mac + phone flow: https://goafk.dev/#film"
+    }
+  }
+}
