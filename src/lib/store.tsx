@@ -23,6 +23,8 @@ type Store = {
   error: string | null;
   live: boolean;
   refresh: () => Promise<void>;
+  /** Clears a thread's unread mark here at once, then tells the Mac. */
+  markSeen: (id: string) => void;
   onEvent: (fn: (e: HubEvent) => void) => () => void;
   expanded: Record<string, boolean>;
   toggle: (path: string) => void;
@@ -366,6 +368,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     [activeId, persist],
   );
 
+  const markSeen = useCallback(
+    (id: string) => {
+      setProjects((ps) => {
+        if (!ps.some((p) => p.threads.some((t) => t.id === id && t.unread))) return ps;
+        const next = ps.map((p) => ({ ...p, threads: p.threads.map((t) => (t.id === id ? { ...t, unread: false } : t)) }));
+        updateWidget(next);
+        return next;
+      });
+      api.seen(id).catch(() => {});
+    },
+    [api],
+  );
+
   const onEvent = useCallback((fn: (e: HubEvent) => void) => {
     listeners.current.add(fn);
     return () => {
@@ -396,6 +411,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     error,
     live,
     refresh,
+    markSeen,
     onEvent,
     expanded,
     toggle,

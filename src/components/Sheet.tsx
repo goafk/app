@@ -2,10 +2,11 @@
 // Phones: drag the top of the sheet (grabber and title) down to dismiss it; a short drag springs back.
 // The drag area is the top only, so scrolling inside a sheet never closes it by accident.
 import React, { useEffect } from "react";
-import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { Modal, Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { KeyboardLift } from "../lib/keyboard";
 import { ui, useTheme } from "../lib/theme";
 
 export function Sheet({ visible, onClose, title, children }: { visible: boolean; onClose: () => void; title?: string; children: React.ReactNode }) {
@@ -42,7 +43,8 @@ export function Sheet({ visible, onClose, title, children }: { visible: boolean;
   return (
     <Modal visible={visible} transparent animationType={wide ? "fade" : "slide"} onRequestClose={onClose} statusBarTranslucent>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+        {/* The card already pads for the home indicator; the keyboard covers that, so don't count it twice. */}
+        <KeyboardLift style={{ flex: 1 }} bottomInset={wide ? 0 : Math.max(insets.bottom, 12) - 12}>
           <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: t.scrim }, dimStyle]} pointerEvents="none" />
           <Pressable style={[st.backdrop, wide && st.center]} onPress={onClose} accessibilityLabel="Close">
             <Animated.View style={[st.wrap, wide ? st.wrapWide : null, !wide && cardStyle]}>
@@ -64,7 +66,7 @@ export function Sheet({ visible, onClose, title, children }: { visible: boolean;
               </Pressable>
             </Animated.View>
           </Pressable>
-        </KeyboardAvoidingView>
+        </KeyboardLift>
       </GestureHandlerRootView>
     </Modal>
   );

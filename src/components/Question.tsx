@@ -2,11 +2,12 @@
 // "Input Requested by <agent>" card: titled fields, boxed radio/checkbox options with
 // descriptions, per-question "Other" box, and a Submit / Decline / Cancel footer.
 import React, { useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import type { PendingElicitation } from "../lib/api";
 import { ui, useTheme } from "../lib/theme";
 import type { Theme } from "../lib/theme";
 import { CheckIcon, InfoIcon, XIcon } from "./Icons";
+import { MarkdownInput } from "./MarkdownInput";
 
 type Opt = { value: string; label: string; description?: string };
 type Base = { key: string; title?: string; description?: string };
@@ -104,7 +105,7 @@ export function QuestionCard({ pending, agentName, onAnswer }: Props) {
               ) : f.kind === "bool" ? (
                 <Switch value={!!values[f.key]} onValueChange={(v) => set(f.key, v)} trackColor={{ false: t.switchOff, true: t.accent }} thumbColor={!!values[f.key] ? t.onAccent : "#FFFFFF"} />
               ) : (
-                <TextInput
+                <MarkdownInput
                   value={values[f.key] ?? ""}
                   onChangeText={(v) => set(f.key, v)}
                   placeholderTextColor={t.faint}

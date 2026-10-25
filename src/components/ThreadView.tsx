@@ -23,7 +23,7 @@ export function ThreadView({ id, find, onBack, onNewThread, onToggleWide, onRevi
   const t = useTheme();
   const s = useMemo(() => styles(t), [t]);
   const insets = useSafeAreaInsets();
-  const { api, onEvent, activeHost, conn } = useStore();
+  const { api, onEvent, activeHost, conn, markSeen } = useStore();
   const [thread, setThread] = useState<ThreadDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [menu, setMenu] = useState(false);
@@ -65,8 +65,8 @@ export function ThreadView({ id, find, onBack, onNewThread, onToggleWide, onRevi
   useEffect(() => {
     setThread(null);
     load();
-    api.seen(id).catch(() => {}); // opening a thread clears its unread mark
-  }, [load, api, id]);
+    markSeen(id); // opening a thread clears its unread mark
+  }, [load, markSeen, id]);
 
   useEffect(
     () =>
@@ -99,6 +99,8 @@ export function ThreadView({ id, find, onBack, onNewThread, onToggleWide, onRevi
         } else if (e.type === "entries.cleared") {
           setThread((th) => (th ? { ...th, entries: [] } : th));
         } else if (e.type === "thread.updated" || e.type === "needs_input") {
+          // You're looking at it: a turn finishing here isn't news.
+          if (e.type === "thread.updated" && e.data?.unread) markSeen(id);
           if (e.type === "thread.updated" && e.data) {
             setThread((th) =>
               th
@@ -118,7 +120,7 @@ export function ThreadView({ id, find, onBack, onNewThread, onToggleWide, onRevi
           } else load();
         }
       }),
-    [onEvent, id, load],
+    [onEvent, id, load, markSeen],
   );
 
   useEffect(() => {

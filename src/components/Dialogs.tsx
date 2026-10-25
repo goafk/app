@@ -1,6 +1,6 @@
 // New-thread picker and hub connection settings.
 import React, { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import type { Agent, SidebarThread } from "../lib/api";
 import { makeApi } from "../lib/api";
 import { loadPushPrefs, useStore } from "../lib/store";
@@ -12,6 +12,7 @@ import { AppearanceSettings } from "./AppearanceSettings";
 import { LOCK_AFTER_OPTIONS, useLock } from "./LockGate";
 import { useUpdates } from "../lib/updates";
 import { Sheet } from "./Sheet";
+import { MarkdownInput } from "./MarkdownInput";
 
 const kindOf = (id: string) => (id.includes("claude") ? "claude" : id.includes("codex") ? "codex" : "other");
 
@@ -89,7 +90,7 @@ export function NewThreadSheet({ cwd, onClose, onCreated }: { cwd: string | null
         </Pressable>
       ))}
       <View style={s.box}>
-        <TextInput
+        <MarkdownInput
           value={prompt}
           onChangeText={setPrompt}
           placeholder="First message (optional)"

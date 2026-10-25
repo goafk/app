@@ -1,11 +1,12 @@
 // Zed's "Queued Messages" panel: messages sent mid-turn wait here and go out when the turn ends.
 // Each can be deleted, edited, or sent now (which stops the current turn first).
 import React, { useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import type { QueuedMessage } from "../lib/api";
 import { mono, ui, useTheme } from "../lib/theme";
 import type { Theme } from "../lib/theme";
 import { ChevronDown, ChevronRight, PencilIcon, TrashIcon } from "./Icons";
+import { MarkdownInput } from "./MarkdownInput";
 
 type Props = {
   items: QueuedMessage[];
@@ -49,7 +50,7 @@ export function QueuePanel({ items, onRemove, onEdit, onSendNow, onClear }: Prop
         ? items.map((q) =>
             editing?.id === q.id ? (
               <View key={q.id} style={s.row}>
-                <TextInput
+                <MarkdownInput
                   value={editing.text}
                   onChangeText={(text) => setEditing({ id: q.id, text })}
                   autoFocus

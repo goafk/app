@@ -45,7 +45,7 @@ export function Sidebar({ onOpen, onOpenHit, onNewThread, onSettings, onToggleSi
   const t = useTheme();
   const s = useMemo(() => styles(t), [t]);
   const insets = useSafeAreaInsets();
-  const { projects: zedProjects, expanded, toggle, selected, error, live, refresh, api, activeHost, conn, offlineSince } = useStore();
+  const { projects: zedProjects, expanded, toggle, selected, error, live, refresh, api, activeHost, conn, offlineSince, markSeen } = useStore();
   // The user's own project order (per computer), and how many threads each open project shows.
   const { order, setOrder } = useProjectOrder(activeHost?.id ?? conn.url);
   const { hidden, hide, unhide } = useHiddenProjects(activeHost?.id ?? conn.url);
@@ -454,7 +454,7 @@ export function Sidebar({ onOpen, onOpenHit, onNewThread, onSettings, onToggleSi
           ? [
               { label: "Rename", run: () => { setNewTitle(menu.title); setRenaming(menu); } },
               { label: menu.archived ? "Unarchive" : "Archive", run: () => setMeta(menu, { archived: !menu.archived }) },
-              ...(menu.unread ? [{ label: "Mark as read", run: () => api.seen(menu.id).then(refresh, () => {}) }] : []),
+              ...(menu.unread ? [{ label: "Mark as read", run: () => markSeen(menu.id) }] : []),
             ].map((a) => (
               <Pressable key={a.label} onPress={() => { setMenu(null); a.run(); }} style={({ pressed }) => [s.menuItem, pressed && { backgroundColor: t.hover }]}>
                 <Text style={s.menuText}>{a.label}</Text>

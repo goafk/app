@@ -14,6 +14,7 @@ import { pickImages } from "../lib/images";
 import type { Attachment } from "../lib/images";
 import { Sheet } from "./Sheet";
 import { formatTokens } from "./PlanBar";
+import { MarkdownInput } from "./MarkdownInput";
 
 type Choice = { value: string; name?: string; description?: string; group?: string };
 
@@ -316,7 +317,7 @@ export function Composer({ agentName, options, running, disabled, onSend, onCanc
         </ScrollView>
       ) : null}
       <View style={s.inputRow}>
-        <TextInput
+        <MarkdownInput
           ref={inputRef}
           value={text}
           onChangeText={(v) => {
