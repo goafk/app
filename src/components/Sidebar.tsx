@@ -45,7 +45,7 @@ export function Sidebar({ onOpen, onOpenHit, onNewThread, onSettings, onToggleSi
   const t = useTheme();
   const s = useMemo(() => styles(t), [t]);
   const insets = useSafeAreaInsets();
-  const { projects: zedProjects, expanded, toggle, selected, error, live, refresh, api, activeHost, conn, offlineSince, markSeen } = useStore();
+  const { projects: zedProjects, expanded, toggle, selected, error, live, refresh, api, activeHost, conn, offlineSince, markSeen, markAllSeen } = useStore();
   // The user's own project order (per computer), and how many threads each open project shows.
   const { order, setOrder } = useProjectOrder(activeHost?.id ?? conn.url);
   const { hidden, hide, unhide } = useHiddenProjects(activeHost?.id ?? conn.url);
@@ -101,6 +101,7 @@ export function Sidebar({ onOpen, onOpenHit, onNewThread, onSettings, onToggleSi
 
   const needsYou = (th: SidebarThread) => !th.archived && (th.status === "needs_permission" || !!th.unread);
   const inboxCount = useMemo(() => projects.reduce((n, p) => n + p.threads.filter(needsYou).length, 0), [projects]);
+  const unreadCount = useMemo(() => projects.reduce((n, p) => n + p.threads.filter((th) => !th.archived && th.unread).length, 0), [projects]);
   const setMeta = async (th: SidebarThread, patch: { title?: string; archived?: boolean }) => {
     try {
       await api.setMeta(th.id, patch);
@@ -315,6 +316,16 @@ export function Sidebar({ onOpen, onOpenHit, onNewThread, onSettings, onToggleSi
             </View>
           );
         }}
+        ListHeaderComponent={
+          mode === "inbox" && unreadCount && !q.trim() ? (
+            <View style={s.inboxHead}>
+              <Text style={s.inboxHeadText}>{unreadCount} unread</Text>
+              <Pressable hitSlop={10} onPress={markAllSeen} accessibilityRole="button">
+                <Text style={[s.inboxHeadText, { color: t.accent, fontWeight: "600" }]}>Mark all as read</Text>
+              </Pressable>
+            </View>
+          ) : null
+        }
         ListFooterComponent={
           hits && hits.length && mode !== "inbox" ? (
             <View style={{ paddingBottom: 8 }}>
@@ -569,6 +580,8 @@ function styles(t: Theme) {
     grip: { width: 48, height: 52, alignItems: "center", justifyContent: "center", marginRight: -8 },
     orderRowOn: { borderRadius: 12, marginHorizontal: 6 },
     orderBtn: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: t.optionBg },
+    inboxHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", minHeight: 40, paddingHorizontal: 16 },
+    inboxHeadText: { fontSize: t.fs(13), color: t.muted, fontFamily: ui },
     hitsHead: { fontSize: t.fs(13), color: t.muted, fontFamily: ui, fontWeight: "500", marginTop: 18, marginBottom: 2, marginHorizontal: 16 },
     hit: { paddingHorizontal: 16, paddingVertical: t.sp(12), gap: 4 },
     hitWide: { borderBottomWidth: 1, borderBottomColor: t.border },
