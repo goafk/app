@@ -7,7 +7,7 @@ import Svg, { Circle } from "react-native-svg";
 import type { ConfigOption } from "../lib/api";
 import { ui, useTheme } from "../lib/theme";
 import type { Theme } from "../lib/theme";
-import { ArrowUpIcon, BoltIcon, CheckIcon, ChevronDown, ChevronRight, ExpandIcon, FileIcon, FolderIcon, PencilIcon, PlusIcon, StopIcon, XIcon } from "./Icons";
+import { ArrowUpIcon, BoltIcon, CheckIcon, ChecklistIcon, ChevronDown, ChevronRight, CodeIcon, ExpandIcon, EyeIcon, FileIcon, FolderIcon, IndentIcon, OutdentIcon, PencilIcon, PlusIcon, StopIcon, XIcon } from "./Icons";
 import { QuickRepliesSheet } from "./QuickRepliesSheet";
 import { chipLabel, useQuickReplies } from "../lib/quickReplies";
 import { pickImages } from "../lib/images";
@@ -15,6 +15,11 @@ import type { Attachment } from "../lib/images";
 import { Sheet } from "./Sheet";
 import { formatTokens } from "./PlanBar";
 import { MarkdownInput } from "./MarkdownInput";
+import type { MarkdownEditor } from "./MarkdownInput";
+import { Markdown } from "./Markdown";
+import { indentLines, toggleChecklist, toggleCode } from "../lib/lists";
+import { haptic } from "../lib/haptics";
+import { useDraft } from "../lib/drafts";
 
 type Choice = { value: string; name?: string; description?: string; group?: string };
 
@@ -71,6 +76,8 @@ type Props = {
   searchFiles?: (q: string) => Promise<FileHit[]>;
   /** The thread's project folder: quick replies can be set per project. */
   cwd?: string;
+  /** Keeps the unsent message under this key (the thread), across thread switches and restarts. */
+  draftKey?: string;
   /** "Approve everything in this thread", shown in the thread settings sheet when given. */
   autoApprove?: { on: boolean; toggle: () => void };
 };
@@ -121,10 +128,11 @@ export function mentionQuery(text: string): string | null {
 
 type MenuItem = { kind: "cmd"; cmd: SlashCommand } | { kind: "file"; file: FileHit };
 
-export function Composer({ agentName, options, running, disabled, onSend, onCancel, onConfig, commands = [], searchFiles, usage, autoApprove, cwd }: Props) {
+export function Composer({ agentName, options, running, disabled, onSend, onCancel, onConfig, commands = [], searchFiles, usage, autoApprove, cwd, draftKey }: Props) {
   const t = useTheme();
   const s = useMemo(() => styles(t), [t]);
   const [text, setText] = useState("");
+  useDraft(draftKey, text, setText);
   const [big, setBig] = useState(false);
   const [sending, setSending] = useState(false);
   const [quickBusy, setQuickBusy] = useState<string | null>(null);
@@ -149,6 +157,17 @@ export function Composer({ agentName, options, running, disabled, onSend, onCanc
     }
   };
   const inputRef = useRef<TextInput>(null);
+  const editor = useRef<MarkdownEditor | null>(null);
+  // The format bar shows while you type (phones have no Tab key); Preview renders the draft as it'll read.
+  const [focused, setFocused] = useState(false);
+  const [preview, setPreview] = useState(false);
+  useEffect(() => {
+    if (!text.trim()) setPreview(false);
+  }, [text]);
+  const togglePreview = () => {
+    if (preview) setTimeout(() => inputRef.current?.focus(), 50); // back to editing, keyboard and all
+    setPreview(!preview);
+  };
 
   const atQ = mentionQuery(text);
   useEffect(() => {
@@ -196,6 +215,7 @@ export function Composer({ agentName, options, running, disabled, onSend, onCanc
     setErr(null);
     try {
       await onSend(msg, mentions.filter((m) => msg.includes(`@${m}`)), images);
+      haptic.tap();
       setText("");
       setMentions([]);
       setImages([]);
@@ -316,9 +336,48 @@ export function Composer({ agentName, options, running, disabled, onSend, onCanc
           ))}
         </ScrollView>
       ) : null}
+      {focused || preview ? (
+        <View style={s.formatBar}>
+          {!preview
+            ? (
+                [
+                  ["Indent", IndentIcon, (x: string, a: number, b: number) => indentLines(x, a, b, 1)],
+                  ["Outdent", OutdentIcon, (x: string, a: number, b: number) => indentLines(x, a, b, -1)],
+                  ["Checklist", ChecklistIcon, toggleChecklist],
+                  ["Code", CodeIcon, toggleCode],
+                ] as const
+              ).map(([label, Icon, fn]) => (
+                <Pressable key={label} hitSlop={4} onPress={() => editor.current?.apply(fn)} style={({ pressed }) => [s.formatBtn, pressed && { backgroundColor: t.hover }]} accessibilityLabel={label}>
+                  <Icon color={t.muted} size={18} />
+                </Pressable>
+              ))
+            : null}
+          <View style={{ flex: 1 }} />
+          <Pressable
+            hitSlop={4}
+            disabled={!text.trim()}
+            onPress={togglePreview}
+            style={({ pressed }) => [s.formatBtn, s.previewBtn, preview && { backgroundColor: t.optionBg }, pressed && { backgroundColor: t.hover }, !text.trim() && { opacity: 0.4 }]}
+            accessibilityLabel={preview ? "Edit" : "Preview"}
+          >
+            {preview ? <PencilIcon color={t.text} size={15} /> : <EyeIcon color={t.muted} size={17} />}
+            <Text style={[s.formatText, preview && { color: t.text }]}>{preview ? "Edit" : "Preview"}</Text>
+          </Pressable>
+        </View>
+      ) : null}
       <View style={s.inputRow}>
+        {preview ? (
+          <ScrollView style={[s.previewBox, big && { maxHeight: 420 }]} contentContainerStyle={{ paddingHorizontal: 4 }}>
+            <Pressable onPress={togglePreview} accessibilityHint="Tap to edit">
+              <Markdown text={text} />
+            </Pressable>
+          </ScrollView>
+        ) : (
         <MarkdownInput
           ref={inputRef}
+          editor={editor}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           value={text}
           onChangeText={(v) => {
             setText(v);
@@ -353,6 +412,7 @@ export function Composer({ agentName, options, running, disabled, onSend, onCanc
             }
           }}
         />
+        )}
         <View style={s.inputSide}>
           <Pressable hitSlop={8} onPress={() => setBig((b) => !b)} style={s.expand} accessibilityLabel="Expand editor">
             <ExpandIcon color={t.faint} size={16} />
@@ -545,6 +605,11 @@ function styles(t: Theme) {
     quickText: { fontSize: t.fs(13.5), color: t.text, fontFamily: ui },
     usage: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 40, paddingHorizontal: 4 },
     toolbar: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 },
+    formatBar: { flexDirection: "row", alignItems: "center", gap: 2, marginBottom: 6, marginHorizontal: -4 },
+    formatBtn: { minWidth: 36, height: 32, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+    previewBtn: { flexDirection: "row", gap: 5, paddingHorizontal: 10 },
+    formatText: { fontSize: t.fs(13), color: t.muted, fontFamily: ui, fontWeight: "500" },
+    previewBox: { flex: 1, minHeight: 44, maxHeight: 260 },
     toolBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
     toggleChip: { borderWidth: 1, borderColor: t.borderStrong, borderRadius: 18, width: 36, justifyContent: "center", marginLeft: 4 },
     inputSide: { alignItems: "flex-end", gap: 8 },

@@ -232,6 +232,13 @@ export async function demoFetch(url: string, init?: { method?: string; body?: an
     return res({ ok: true });
   }
   if (p === "/threads" && method === "POST") return res(newThread(body), 201);
+  if (p === "/threads/seen" && method === "POST") {
+    for (const id of body.ids ?? []) {
+      const t = row(String(id));
+      if (t) t.unread = false;
+    }
+    return res({ ok: true });
+  }
   if ((m = /^\/threads\/pending\/([^/]+)\/cancel$/.exec(p))) return res({ ok: true });
   if ((m = /^\/threads\/([^/]+)\/([a-z]+)$/.exec(p))) {
     const id = decodeURIComponent(m[1]);

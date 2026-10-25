@@ -9,6 +9,7 @@ import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withSpring
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardLift } from "../lib/keyboard";
 import { ui, useTheme } from "../lib/theme";
+import { haptic } from "../lib/haptics";
 
 // iOS's sheet curve: quick out of the gate, long gentle settle.
 const SHEET_EASE = Easing.bezier(0.32, 0.72, 0, 1);
@@ -72,7 +73,10 @@ export function Sheet({ visible, onClose, title, children }: { visible: boolean;
       y.value = e.translationY > 0 ? e.translationY : e.translationY * 0.15;
     })
     .onEnd((e) => {
-      if (e.translationY > 110 || e.velocityY > 900) runOnJS(onClose)(); // the exit carries on from here
+      if (e.translationY > 110 || e.velocityY > 900) {
+        runOnJS(haptic.tap)();
+        runOnJS(onClose)(); // the exit carries on from here
+      }
       else y.value = withSpring(0, { damping: 22, stiffness: 260 });
     });
 

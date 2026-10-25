@@ -8,6 +8,7 @@ import { ui, useTheme } from "../lib/theme";
 import type { Theme } from "../lib/theme";
 import { CheckIcon, InfoIcon, XIcon } from "./Icons";
 import { MarkdownInput } from "./MarkdownInput";
+import { haptic } from "../lib/haptics";
 
 type Opt = { value: string; label: string; description?: string };
 type Base = { key: string; title?: string; description?: string };
@@ -57,6 +58,7 @@ export function QuestionCard({ pending, agentName, onAnswer }: Props) {
         content[k] = fields.find((f) => f.key === k)?.kind === "number" ? Number(v) : v;
       }
       await onAnswer(action, action === "accept" ? content : undefined);
+      haptic.success();
     } catch (e: any) {
       setErr(e.message);
       setBusy(null);

@@ -16,6 +16,7 @@ import { EntryView } from "./Entries";
 import { AgentIcon, ChevronLeft, ExpandIcon, MoreIcon, PlusIcon, SearchIcon, WarningIcon, XIcon } from "./Icons";
 import { PlanBar } from "./PlanBar";
 import { Sheet } from "./Sheet";
+import { haptic } from "../lib/haptics";
 
 type Props = { id: string; /** Open with the find bar searching for this. */ find?: string; onBack?: () => void; onNewThread?: (cwd: string) => void; onToggleWide?: () => void; onReviewChanges?: (cwd: string) => void };
 
@@ -342,6 +343,7 @@ export function ThreadView({ id, find, onBack, onNewThread, onToggleWide, onRevi
                       setPermBusy(key);
                       try {
                         await api.permission(id, p.requestId, o.optionId);
+                        haptic.success();
                         // Drop the card right away; the hub's update confirms it.
                         setThread((th) => (th ? { ...th, pendingPermissions: (th.pendingPermissions ?? []).filter((x) => x.requestId !== p.requestId), status: "running" } : th));
                       } catch (e: any) {
@@ -385,6 +387,7 @@ export function ThreadView({ id, find, onBack, onNewThread, onToggleWide, onRevi
               />
               <Composer
                 cwd={thread.cwd}
+                draftKey={`${offlineKey}:${id}`}
                 autoApprove={live ? { on: !!thread.autoApprove, toggle: toggleAutoApprove } : undefined}
                 agentName={thread.agentName ?? "agent"}
                 options={thread.configOptions ?? []}

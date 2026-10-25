@@ -77,6 +77,11 @@ export const GearIcon = (p: P) => (
 );
 export const CheckIcon = (p: P) => (<S {...p}><Path d="M5 12.5l4.5 4.5L19 7.5" /></S>);
 export const XIcon = (p: P) => (<S {...p}><Path d="M6 6l12 12M18 6L6 18" /></S>);
+export const IndentIcon = (p: P) => (<S {...p}><Path d="M10 6h10M10 12h10M10 18h10M3 9l3 3-3 3" /></S>);
+export const OutdentIcon = (p: P) => (<S {...p}><Path d="M10 6h10M10 12h10M10 18h10M6 9l-3 3 3 3" /></S>);
+export const ChecklistIcon = (p: P) => (<S {...p}><Rect x={3.5} y={4.5} width={6} height={6} rx={1.5} /><Path d="M4.8 16.6l1.6 1.6 3-3.2M13 7.5h7.5M13 16.5h7.5" /></S>);
+export const CodeIcon = (p: P) => (<S {...p}><Path d="M8.5 7L3.5 12l5 5M15.5 7l5 5-5 5" /></S>);
+export const EyeIcon = (p: P) => (<S {...p}><Path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" /><Circle cx={12} cy={12} r={3} /></S>);
 export const CopyIcon = (p: P) => (<S {...p}><Rect x={8} y={8} width={12} height={12} rx={2} /><Path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" /></S>);
 export const ArrowUpIcon = (p: P) => (<S {...p}><Path d="M12 19V5M6 11l6-6 6 6" /></S>);
 export const UserUpIcon = (p: P) => (<S {...p}><Circle cx={10} cy={8} r={3.5} /><Path d="M3.5 20c.6-3.5 3.2-5.5 6.5-5.5 1.3 0 2.5.3 3.5.9M18 21v-6M15.5 17.5L18 15l2.5 2.5" /></S>);

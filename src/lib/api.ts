@@ -132,6 +132,15 @@ export function makeApi(conn: Conn) {
     gitDiscard: (cwd: string, files: string[]) => call("POST", "/git/discard", { cwd, files }),
     gitPush: (cwd: string) => call<{ output: string }>("POST", "/git/push", { cwd }),
     seen: (id: string) => call("POST", `/threads/${encodeURIComponent(id)}/seen`),
+    /** Several at once; hubs from before the bulk route get one call per thread. */
+    seenMany: async (ids: string[]) => {
+      try {
+        await call("POST", "/threads/seen", { ids });
+      } catch (e: any) {
+        if (e.status !== 404) throw e;
+        await Promise.all(ids.map((id) => call("POST", `/threads/${encodeURIComponent(id)}/seen`)));
+      }
+    },
     setMeta: (id: string, patch: { title?: string; archived?: boolean; autoApprove?: boolean }) => call("POST", `/zed/threads/${encodeURIComponent(id)}/meta`, patch),
     resume: (id: string) => call("POST", `/zed/threads/${encodeURIComponent(id)}/resume`),
     thread: (id: string) => call<ThreadDetail>("GET", `/zed/threads/${encodeURIComponent(id)}`),

@@ -1,8 +1,12 @@
 // A TextInput that continues Markdown lists as you type and keeps numbered ones in order (see lib/lists).
+// A toolbar can drive it through `editor`: indent, checklist, code… applied at the current selection.
 import React, { forwardRef, useRef, useState } from "react";
 import { Platform, TextInput } from "react-native";
 import type { TextInputProps } from "react-native";
 import { continueList, renumberAfterDelete } from "../lib/lists";
+import type { Edit } from "../lib/lists";
+
+export type MarkdownEditor = { apply: (fn: (text: string, start: number, end: number) => Edit) => void };
 
 // Does the selection event for a keystroke arrive before its change event? iOS sends the change first
 // (RCTTextInputComponentView guarantees it); elsewhere we learn it from ordinary typing.
@@ -22,27 +26,41 @@ function caretBefore(prev: string, next: string, sel: { start: number; end: numb
   return selectionFirst ? sel.start - 1 : sel.start;
 }
 
-export const MarkdownInput = forwardRef<TextInput, TextInputProps>(function MarkdownInput({ value, onChangeText, onSelectionChange, ...rest }, ref) {
-  // After we insert a marker, place the caret after it once, then hand the selection back to the user.
-  const [caret, setCaret] = useState<number | null>(null);
+type Props = TextInputProps & { editor?: React.MutableRefObject<MarkdownEditor | null> };
+
+export const MarkdownInput = forwardRef<TextInput, Props>(function MarkdownInput({ value, onChangeText, onSelectionChange, editor, ...rest }, ref) {
+  // After we edit the text, place the selection once, then hand it back to the user.
+  const [placed, setPlaced] = useState<{ start: number; end: number } | null>(null);
   const last = useRef(value ?? "");
   last.current = value ?? "";
   const sel = useRef<{ start: number; end: number } | null>(null);
+  if (editor)
+    editor.current = {
+      apply: (fn) => {
+        const text = last.current;
+        const at = sel.current ?? { start: text.length, end: text.length };
+        const r = fn(text, Math.min(at.start, text.length), Math.min(at.end, text.length));
+        if (r.text === text && r.start === at.start && r.end === at.end) return;
+        sel.current = { start: r.start, end: r.end };
+        setPlaced({ start: r.start, end: r.end });
+        onChangeText?.(r.text);
+      },
+    };
 
   return (
     <TextInput
       ref={ref}
       {...rest}
       value={value}
-      selection={caret === null ? undefined : { start: caret, end: caret }}
+      selection={placed ?? undefined}
       onSelectionChange={(e) => {
         sel.current = e.nativeEvent.selection;
-        if (caret !== null) setCaret(null);
+        if (placed !== null) setPlaced(null);
         onSelectionChange?.(e);
       }}
       onChangeText={(v) => {
         const c = rest.multiline ? (continueList(last.current, v, caretBefore(last.current, v, sel.current)) ?? renumberAfterDelete(last.current, v)) : null;
-        setCaret(c ? c.caret : null);
+        setPlaced(c ? { start: c.caret, end: c.caret } : null);
         onChangeText?.(c ? c.text : v);
       }}
     />

@@ -254,6 +254,7 @@ export function Sidebar({ onOpen, onOpenHit, onNewThread, onSettings, onToggleSi
         onOpen={() => onOpen(th)}
         onMenu={() => setMenu(th)}
         onArchive={() => setMeta(th, { archived: !th.archived })}
+        onMarkRead={th.unread ? () => markSeen(th.id) : undefined}
       />
     );
   };

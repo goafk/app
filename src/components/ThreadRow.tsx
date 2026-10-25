@@ -1,5 +1,5 @@
 // One sidebar thread row: agent icon / spinner / warning, title, age, unread dot.
-// Swipe left to archive (or unarchive); long-press for rename / archive / mark read.
+// Swipe left to archive (or unarchive), right to mark read; long-press for rename / archive / mark read.
 import React, { useRef } from "react";
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
@@ -10,6 +10,7 @@ import { ui } from "../lib/theme";
 import { readableOn } from "../lib/themes";
 import type { Theme } from "../lib/theme";
 import { AgentIcon, WarningIcon } from "./Icons";
+import { haptic } from "../lib/haptics";
 
 type Props = {
   th: SidebarThread;
@@ -21,11 +22,13 @@ type Props = {
   onOpen: () => void;
   onMenu: () => void;
   onArchive: () => void;
+  /** Given for unread threads: a swipe to the right marks it read. */
+  onMarkRead?: () => void;
   /** Row background (the sidebar's by default; phones show rows on cards). */
   bg?: string;
 };
 
-export function ThreadRow({ th, t, selected, subtitle, preview, now, onOpen, onMenu, onArchive, bg }: Props) {
+export function ThreadRow({ th, t, selected, subtitle, preview, now, onOpen, onMenu, onArchive, onMarkRead, bg }: Props) {
   const ref = useRef<SwipeableMethods>(null);
   const st = sheet(t);
   const waiting = th.status === "needs_permission";
@@ -67,6 +70,25 @@ export function ThreadRow({ th, t, selected, subtitle, preview, now, onOpen, onM
       friction={2}
       rightThreshold={60}
       overshootRight={false}
+      leftThreshold={70}
+      overshootLeft={false}
+      renderLeftActions={
+        onMarkRead
+          ? () => (
+              <View style={[st.action, { backgroundColor: t.accent }]}>
+                <Text style={[st.actionText, { color: t.onAccent }]}>Read</Text>
+              </View>
+            )
+          : undefined
+      }
+      onSwipeableWillOpen={(dir) => {
+        // A swipe to the right is the whole gesture: mark it read and spring back.
+        if (dir === "right" && onMarkRead) {
+          haptic.select();
+          onMarkRead();
+          ref.current?.close();
+        }
+      }}
       renderRightActions={() => (
         <Pressable
           onPress={() => {

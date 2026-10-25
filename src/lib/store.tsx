@@ -1,6 +1,7 @@
 // App-wide state: the paired Macs (one active at a time), the active Mac's Zed sidebar, and its
 // live event stream.
-import { AppState } from "react-native";
+import { AppState, Platform } from "react-native";
+import * as Notifications from "expo-notifications";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { defaultConn, makeApi } from "./api";
 import { connOf, loadHosts, resolveUrl, saveHosts } from "./hosts";
@@ -13,6 +14,7 @@ import type { PushState } from "./push";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { loadSidebar, saveSidebar } from "./offline";
 import type { HubEvent } from "./sse";
+import { haptic } from "./haptics";
 
 type Store = {
   ready: boolean;
@@ -209,6 +211,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     };
   }, [ready, hosts.length, activeId]);
 
+  // The app icon's badge: everything that needs you, on every Mac. (While the app is closed the
+  // Mac's notifications set it.)
+  const needsYou = useMemo(
+    () =>
+      projects.reduce((n, p) => n + p.threads.filter((t) => !t.archived && (t.status === "needs_permission" || t.unread)).length, 0) +
+      Object.values(others).reduce((n, o) => n + o.needs, 0),
+    [projects, others],
+  );
+  useEffect(() => {
+    if (!ready || Platform.OS === "web" || !projects.length) return; // nothing loaded yet: keep the last count
+    Notifications.setBadgeCountAsync(needsYou).catch(() => {});
+  }, [ready, needsYou, projects.length]);
+
   const switchHost = useCallback(
     (id: string) => {
       const h = hostsRef.current.find((x) => x.id === id);
@@ -391,7 +406,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       updateWidget(next);
       return next;
     });
-    for (const id of ids) api.seen(id).catch(() => {});
+    haptic.success();
+    api.seenMany(ids).catch(() => {});
   }, [api, projects]);
 
   const onEvent = useCallback((fn: (e: HubEvent) => void) => {
